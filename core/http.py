@@ -73,6 +73,9 @@ class HttpClient:
     def post(self, url: str, **kwargs: Any) -> httpx.Response:
         return self.request("POST", url, **kwargs)
 
+    def head(self, url: str, **kwargs: Any) -> httpx.Response:
+        return self.request("HEAD", url, **kwargs)
+
     def _compute_delay(self, response: httpx.Response, attempt: int) -> float:
         retry_after = response.headers.get("Retry-After")
         if retry_after is not None:
