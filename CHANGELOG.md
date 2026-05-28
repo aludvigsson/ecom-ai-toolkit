@@ -2,6 +2,22 @@
 
 All notable changes documented here. Format follows [keep-a-changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.1] — 2026-05-28
+
+### Fixed
+- `discounts/update.py` now requires `--applies-to` when `--value` changes so partial `customerGets` updates don't fail Shopify's input validation (Plan-3 deferred concern I-3).
+- `bulk_query` does one final un-timed poll after `max_wait` expires before raising, and retries the JSONL download up to 3 times on transient network errors (Plan-3 deferred concerns I-1, I-2).
+- `discounts/create.py` argparse-errors at parse time for invalid flag combinations (`--value` on free-shipping, `--usage-limit`/`--applies-once-per-customer` on automatic, percentage `--value > 100`) instead of silently dropping or failing later (Plan-3 deferred concern I-4, suggestion S-1).
+- `inventory/set.py` `--location-name` match is now case-insensitive (Plan-3 deferred concern I-5).
+
+### Changed
+- `--verbose` (shared flag) now actually raises the `ecom.*` logger to DEBUG via the new `configure_logging_from_args(args)` helper called by every script (Plan-2 deferred concern I-1).
+- `--market` (shared flag) removed from `add_common_flags`. No script read it; future scripts that need market scoping should add `--market` per-script (Plan-2 deferred concern I-1).
+- `core.state.save_state` writes a `schema_version` field (default 1). New `load_state_v(*, expected_version)` raises `StateSchemaError` on mismatch so resume loaders fail loudly on stale-shape files. `bulk_prices.py` migrated (Plan-2 deferred concern I-2).
+
+### Note
+- `SkuNotFoundError`'s base class changed in 0.3.0 from `RuntimeError` to `LookupError` per stdlib "not found" convention. User code catching `RuntimeError` should switch to `LookupError` or the specific class.
+
 ## [0.3.0] — 2026-05-28
 
 ### Added
