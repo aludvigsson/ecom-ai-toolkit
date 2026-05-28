@@ -37,3 +37,11 @@ def test_load_env_local_populates_environ(monkeypatch, tmp_path):
     import os
 
     assert os.environ.get("LOADED_KEY") == "loaded_value"
+
+
+def test_get_secret_auto_loads_env_local_from_cwd(tmp_path, monkeypatch):
+    """Auto-load works from any cwd, every test, regardless of prior loads."""
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("AUTO_LOADED_KEY", raising=False)
+    (tmp_path / ".env.local").write_text("AUTO_LOADED_KEY=auto_value\n")
+    assert get_secret("AUTO_LOADED_KEY") == "auto_value"
