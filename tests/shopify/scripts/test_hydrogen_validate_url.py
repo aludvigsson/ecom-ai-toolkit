@@ -55,6 +55,37 @@ def test_validate_url_from_csv(httpx_mock, capsys, tmp_path):
     assert "https://example.test/b" in out
 
 
+def test_validate_url_no_follow_redirects_reports_3xx_as_failure(httpx_mock, capsys):
+    httpx_mock.add_response(
+        method="HEAD",
+        url="https://example.test/start",
+        status_code=301,
+        headers={"Location": "https://example.test/final"},
+    )
+    with ExitStack() as stack:
+        mock_cfg = stack.enter_context(patch("shopify.scripts.hydrogen.validate_url.load_config"))
+        mock_cfg.side_effect = FileNotFoundError
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "validate_url.py",
+                "--url",
+                "https://example.test/start",
+                "--no-follow-redirects",
+                "--output",
+                "json",
+            ],
+        ):
+            assert validate_url.main() == 1
+    out = capsys.readouterr().out
+    import json as _json
+
+    parsed = _json.loads(out)
+    assert parsed[0]["status"] == 301
+    assert parsed[0]["ok"] is False
+
+
 def test_validate_url_follows_redirects_to_final_url(httpx_mock, capsys):
     httpx_mock.add_response(
         method="HEAD",

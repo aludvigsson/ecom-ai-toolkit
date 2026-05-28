@@ -28,9 +28,9 @@ from shopify.utils.csv_io import read_csv_dicts
 _log = get_logger("ecom.shopify.hydrogen.validate_url")
 
 
-def _check_one(http: HttpClient, url: str) -> dict:
+def _check_one(http: HttpClient, url: str, *, follow_redirects: bool = True) -> dict:
     try:
-        response = http.head(url, follow_redirects=True)
+        response = http.head(url, follow_redirects=follow_redirects)
         status = response.status_code
         final = str(response.url)
         return {"url": url, "status": status, "final_url": final, "ok": status < 400}
@@ -59,6 +59,15 @@ def main(argv: list[str] | None = None) -> int:
         dest="from_csv",
         help="CSV path with a 'url' column",
     )
+    parser.add_argument(
+        "--no-follow-redirects",
+        dest="no_follow_redirects",
+        action="store_true",
+        help=(
+            "Treat 3xx as the URL's status (do not follow). Useful for catching "
+            "parked-domain or expired-SSL redirects."
+        ),
+    )
     args = parser.parse_args(argv)
     configure_logging_from_args(args)
 
@@ -81,10 +90,11 @@ def main(argv: list[str] | None = None) -> int:
 
     results: list[dict] = []
     any_failed = False
+    follow_redirects = not args.no_follow_redirects
     # validators check current state; retries hide problems
     with HttpClient(timeout=15.0, max_retries=0) as http:
         for url in urls:
-            row = _check_one(http, url)
+            row = _check_one(http, url, follow_redirects=follow_redirects)
             results.append(row)
             if not row["ok"]:
                 any_failed = True
