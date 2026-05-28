@@ -12,3 +12,5 @@ _log = get_logger("ecom.webhooks.app_uninstalled")
 def handle(payload: dict[str, Any]) -> None:
     _log.info("app/uninstalled received domain=%s", payload.get("domain"))
     # TODO: wire to your domain logic (e.g. revoke tokens, purge stored shop data, etc.)
+    # Keep it fast (Shopify retries after ~5s) and idempotent (key on payload id);
+    # offload slow work to a background task/queue. See the shopify-webhooks skill.

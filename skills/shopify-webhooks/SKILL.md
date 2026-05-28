@@ -106,6 +106,22 @@ Shipped stubs: `orders/create`, `orders/updated`, `products/update`,
 
 See `receiver/README.md` for the container build and deploy hints.
 
+### Writing production handlers
+
+Two things to get right when you replace the stub bodies:
+
+- **Respond fast; do slow work in the background.** Shopify expects a 2xx
+  within ~5 seconds and retries with backoff otherwise. Handlers run on the
+  asyncio event loop, so blocking I/O (DB writes, outbound HTTP, queue pushes)
+  inside `handle` blocks the receiver and risks the timeout — which causes
+  *more* duplicate deliveries. Acknowledge immediately and offload: FastAPI
+  `BackgroundTasks`, an external queue (SQS/PubSub/Redis), or a worker process.
+- **Make handlers idempotent.** Retries and occasional double-deliveries mean
+  the same event can arrive more than once. Key your processing on a stable id
+  from the payload (e.g. order `id` + `updated_at`) or on the receiver-logged
+  `X-Shopify-Webhook-Id`, and skip work you've already done. Non-idempotent
+  logic (charging, emailing, decrementing stock) will otherwise double-fire.
+
 ## Common pitfalls
 
 - **`--callback-url` must be HTTPS.** The parser rejects non-HTTPS at parse

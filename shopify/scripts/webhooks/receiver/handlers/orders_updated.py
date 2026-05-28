@@ -12,3 +12,5 @@ _log = get_logger("ecom.webhooks.orders_updated")
 def handle(payload: dict[str, Any]) -> None:
     _log.info("orders/updated received id=%s name=%s", payload.get("id"), payload.get("name"))
     # TODO: wire to your domain logic (e.g. reconcile status, refresh cached order, etc.)
+    # Keep it fast (Shopify retries after ~5s) and idempotent (key on payload id);
+    # offload slow work to a background task/queue. See the shopify-webhooks skill.
