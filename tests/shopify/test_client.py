@@ -1,0 +1,57 @@
+import pytest
+
+from core.config import StoreConfig
+from core.secrets import MissingSecretError
+from shopify.utils.client import ShopifyClient, ShopifyGraphQLError
+
+_CFG_DICT = {
+    "store": {
+        "name": "Test",
+        "primary_domain": "test.example",
+        "shopify_domain": "test-store.myshopify.com",
+        "storefront_type": "online_store_2",
+        "default_locale": "en-US",
+    },
+    "markets": [],
+    "domains": {"shopify": {"enabled": True, "api_version": "2025-10"}},
+}
+
+
+@pytest.fixture
+def cfg():
+    return StoreConfig.model_validate(_CFG_DICT)
+
+
+def test_graphql_returns_data(httpx_mock, monkeypatch, cfg):
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_test")
+    httpx_mock.add_response(
+        method="POST",
+        url="https://test-store.myshopify.com/admin/api/2025-10/graphql.json",
+        json={
+            "data": {"shop": {"name": "Test"}},
+            "extensions": {"cost": {"actualQueryCost": 1}},
+        },
+    )
+    client = ShopifyClient(config=cfg)
+    result = client.graphql("query { shop { name } }")
+    assert result["shop"]["name"] == "Test"
+
+
+def test_graphql_user_errors_raise(httpx_mock, monkeypatch, cfg):
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_test")
+    httpx_mock.add_response(
+        method="POST",
+        url="https://test-store.myshopify.com/admin/api/2025-10/graphql.json",
+        json={"errors": [{"message": "Field 'foo' doesn't exist"}]},
+    )
+    client = ShopifyClient(config=cfg)
+    with pytest.raises(ShopifyGraphQLError) as exc:
+        client.graphql("query { foo }")
+    assert "doesn't exist" in str(exc.value)
+
+
+def test_missing_token_raises(monkeypatch, cfg):
+    monkeypatch.delenv("SHOPIFY_ADMIN_ACCESS_TOKEN", raising=False)
+    with pytest.raises(MissingSecretError) as exc:
+        ShopifyClient(config=cfg)
+    assert "SHOPIFY_ADMIN_ACCESS_TOKEN" in str(exc.value)
