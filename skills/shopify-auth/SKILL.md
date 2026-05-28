@@ -5,6 +5,24 @@ description: Verify Shopify Admin API authentication for the current store and w
 
 # shopify-auth
 
+## First-time setup
+
+For a fresh clone, run the interactive setup script — it creates
+`store-config.yaml` and `.env.local`, walks the user through acquiring
+a Shopify Admin API access token, and verifies everything with a whoami
+round-trip:
+
+```bash
+uv run shopify/scripts/setup.py
+```
+
+Two auth paths are offered:
+- **custom-app token** (recommended for unattended ops; never expires) — user pastes a `shpat_...` token from `Settings -> Apps -> Develop apps -> API credentials`.
+- **Shopify CLI** (best for interactive use; token expires in ~24h) — runs `shopify store auth` and extracts the resulting token from the CLI's local config.
+
+If `SHOPIFY_ADMIN_ACCESS_TOKEN` is already set and whoami succeeds, the
+script prints `Already configured.` and exits 0. Re-run any time to verify.
+
 ## When to use
 
 - New install: user has just cloned the repo and needs to verify their setup before doing anything else.

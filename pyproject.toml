@@ -1,6 +1,6 @@
 [project]
 name = "ecom-ai-toolkit"
-version = "0.3.1"
+version = "0.3.2"
 description = "Python ops scripts + skills for Shopify-centric ecommerce stacks"
 readme = "README.md"
 requires-python = ">=3.12"

@@ -2,6 +2,11 @@
 
 All notable changes documented here. Format follows [keep-a-changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.2] — 2026-05-28
+
+### Added
+- `shopify/scripts/setup.py` — interactive first-run setup for `store-config.yaml` + `.env.local`. Supports two auth modes: custom-app token paste (non-expiring) and Shopify CLI browser OAuth (expires in ~24h, suited for interactive use; token extracted from CLI config).
+
 ## [0.3.1] — 2026-05-28
 
 ### Fixed
