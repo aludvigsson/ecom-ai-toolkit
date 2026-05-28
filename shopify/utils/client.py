@@ -49,5 +49,11 @@ class ShopifyClient:
             raise ShopifyGraphQLError("; ".join(e.get("message", str(e)) for e in body["errors"]))
         return body.get("data", {})
 
+    def __enter__(self) -> ShopifyClient:
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        self.close()
+
     def close(self) -> None:
         self._http.close()

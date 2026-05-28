@@ -21,7 +21,7 @@ def test_whoami_prints_shop_name(monkeypatch, capsys):
         mock_cfg.return_value.domains = {
             "shopify": type("D", (), {"api_version": "2025-10", "enabled": True})()
         }
-        mock_client.return_value.graphql.return_value = fake_data
+        mock_client.return_value.__enter__.return_value.graphql.return_value = fake_data
         with patch.object(sys, "argv", ["whoami.py"]):
             whoami.main()
     out = capsys.readouterr().out

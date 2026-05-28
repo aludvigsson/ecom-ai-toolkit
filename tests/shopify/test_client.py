@@ -55,3 +55,15 @@ def test_missing_token_raises(monkeypatch, cfg):
     with pytest.raises(MissingSecretError) as exc:
         ShopifyClient(config=cfg)
     assert "SHOPIFY_ADMIN_ACCESS_TOKEN" in str(exc.value)
+
+
+def test_shopify_client_supports_context_manager(httpx_mock, monkeypatch, cfg):
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_test")
+    httpx_mock.add_response(
+        method="POST",
+        url="https://test-store.myshopify.com/admin/api/2025-10/graphql.json",
+        json={"data": {"shop": {"name": "Test"}}},
+    )
+    with ShopifyClient(config=cfg) as client:
+        result = client.graphql("query { shop { name } }")
+    assert result["shop"]["name"] == "Test"

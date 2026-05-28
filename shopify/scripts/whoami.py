@@ -21,11 +21,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     cfg = load_config(args.config)
-    client = ShopifyClient(config=cfg)
-    try:
+    with ShopifyClient(config=cfg) as client:
         data = client.graphql(_QUERY)
-    finally:
-        client.close()
 
     shop = data["shop"]
     if args.output == "json":
