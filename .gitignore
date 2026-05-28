@@ -8,3 +8,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .DS_Store
+node_modules/
+.coverage
+htmlcov/
+store-config.yaml
