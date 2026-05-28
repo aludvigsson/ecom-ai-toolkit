@@ -6,7 +6,7 @@ import argparse
 import sys
 
 from core.config import load_config
-from shopify.utils.cli import add_common_flags, format_output
+from shopify.utils.cli import add_common_flags, configure_logging_from_args, format_output
 from shopify.utils.client import ShopifyClient
 from shopify.utils.search import escape_search_value
 
@@ -55,6 +55,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--tag")
     parser.add_argument("--query", help="Raw Shopify product query string")
     args = parser.parse_args(argv)
+    configure_logging_from_args(args)
 
     cfg = load_config(args.config)
     query_str = _build_query(args.status, args.vendor, args.tag, args.query)

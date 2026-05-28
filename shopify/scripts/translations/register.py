@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 from core.config import load_config
-from shopify.utils.cli import add_common_flags
+from shopify.utils.cli import add_common_flags, configure_logging_from_args
 from shopify.utils.client import ShopifyClient, check_user_errors
 from shopify.utils.csv_io import read_csv_dicts
 
@@ -80,6 +80,7 @@ def main(argv: list[str] | None = None) -> int:
         help="Path to CSV with resource_id,locale,key,value,translatable_content_digest",
     )
     args = parser.parse_args(argv)
+    configure_logging_from_args(args)
 
     csv_path = Path(args.from_csv)
     rows = list(read_csv_dicts(csv_path))

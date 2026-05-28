@@ -17,7 +17,7 @@ import sys
 from typing import Any
 
 from core.config import load_config
-from shopify.utils.cli import add_common_flags, format_output
+from shopify.utils.cli import add_common_flags, configure_logging_from_args, format_output
 from shopify.utils.client import ShopifyClient
 
 _SINGLE_QUERY = """
@@ -94,6 +94,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--locale", required=True, help="Locale code, e.g. sv-SE")
     args = parser.parse_args(argv)
+    configure_logging_from_args(args)
 
     cfg = load_config(args.config)
 

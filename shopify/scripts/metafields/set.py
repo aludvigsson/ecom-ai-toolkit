@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from core.config import load_config
-from shopify.utils.cli import add_common_flags, format_output
+from shopify.utils.cli import add_common_flags, configure_logging_from_args, format_output
 from shopify.utils.client import ShopifyClient, check_user_errors
 
 _CHUNK_SIZE = 25
@@ -72,6 +72,7 @@ def main(argv: list[str] | None = None) -> int:
         help="Path to JSON array of MetafieldsSetInput objects; use '-' for stdin",
     )
     args = parser.parse_args(argv)
+    configure_logging_from_args(args)
 
     single_flags = (args.owner_id, args.namespace, args.key, args.value, args.type)
     has_any_single = any(f is not None for f in single_flags)

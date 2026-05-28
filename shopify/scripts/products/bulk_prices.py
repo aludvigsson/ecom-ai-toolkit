@@ -22,7 +22,7 @@ from typing import Any
 
 from core.config import load_config
 from core.state import save_state
-from shopify.utils.cli import add_common_flags
+from shopify.utils.cli import add_common_flags, configure_logging_from_args
 from shopify.utils.client import (
     AmbiguousSkuError,
     ShopifyClient,
@@ -149,6 +149,7 @@ def main(argv: list[str] | None = None) -> int:
     source.add_argument("--from-csv", dest="from_csv", help="Path to CSV of price updates")
     source.add_argument("--resume", help="Path to a prior bulk_prices state file")
     args = parser.parse_args(argv)
+    configure_logging_from_args(args)
 
     # Build / load state
     if args.resume:

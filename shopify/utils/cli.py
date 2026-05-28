@@ -1,19 +1,19 @@
 """Shared argparse + output helpers for shopify/scripts/.
 
 Every Plan 2+ script uses these to keep CLI conventions identical:
---market, --dry-run, --output, --limit, --config, --verbose.
+--dry-run, --output, --limit, --config, --verbose.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import logging
 from typing import Any
 
 
 def add_common_flags(parser: argparse.ArgumentParser) -> None:
-    """Register the six conventions every shopify/scripts/* script supports."""
-    parser.add_argument("--market", help="Market code from store-config.yaml")
+    """Register the conventions every shopify/scripts/* script supports."""
     parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -27,6 +27,15 @@ def add_common_flags(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--limit", type=int, default=50)
     parser.add_argument("--config", default="store-config.yaml")
     parser.add_argument("--verbose", action="store_true")
+
+
+def configure_logging_from_args(args: argparse.Namespace) -> None:
+    """Honor --verbose by raising the ecom.* logger to DEBUG.
+
+    Scripts call this immediately after parse_args() to make --verbose actually do something.
+    """
+    if getattr(args, "verbose", False):
+        logging.getLogger("ecom").setLevel(logging.DEBUG)
 
 
 def format_output(data: Any, fmt: str) -> str:

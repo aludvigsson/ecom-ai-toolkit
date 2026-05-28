@@ -12,7 +12,7 @@ from collections import defaultdict
 from decimal import Decimal
 
 from core.config import load_config
-from shopify.utils.cli import add_common_flags
+from shopify.utils.cli import add_common_flags, configure_logging_from_args
 from shopify.utils.client import ShopifyClient
 
 
@@ -109,6 +109,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--to", dest="date_to", required=True, help="ISO date upper bound")
     parser.add_argument("--top-n", dest="top_n", type=int, default=5)
     args = parser.parse_args(argv)
+    configure_logging_from_args(args)
 
     cfg = load_config(args.config)
     bulk_query = _bulk_op_string(args.date_from, args.date_to)

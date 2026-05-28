@@ -12,7 +12,7 @@ import argparse
 import sys
 
 from core.config import load_config
-from shopify.utils.cli import add_common_flags, format_output
+from shopify.utils.cli import add_common_flags, configure_logging_from_args, format_output
 from shopify.utils.client import ShopifyClient
 
 # field name on the root Query, GraphQL op name, whether owner-id is needed
@@ -61,6 +61,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--namespace", help="Filter by metafield namespace")
     parser.add_argument("--key", help="Filter by metafield key")
     args = parser.parse_args(argv)
+    configure_logging_from_args(args)
 
     field, op_name, needs_id = _OWNERS[args.owner_type]
     if needs_id and not args.owner_id:

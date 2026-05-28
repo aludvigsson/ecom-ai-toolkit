@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 from core.config import load_config
-from shopify.utils.cli import add_common_flags, format_output
+from shopify.utils.cli import add_common_flags, configure_logging_from_args, format_output
 from shopify.utils.client import ShopifyClient, check_user_errors
 
 _MUTATION = """
@@ -66,6 +66,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--sort-order", choices=_SORT_ORDERS)
     args = parser.parse_args(argv)
+    configure_logging_from_args(args)
 
     cfg = load_config(args.config)
     collection_input = _build_input(args)

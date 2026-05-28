@@ -24,7 +24,7 @@ import sys
 from datetime import UTC, datetime
 
 from core.config import load_config
-from shopify.utils.cli import add_common_flags, format_output
+from shopify.utils.cli import add_common_flags, configure_logging_from_args, format_output
 from shopify.utils.client import ShopifyClient, check_user_errors
 
 _BASIC_CODE_CREATE = """
@@ -267,6 +267,7 @@ def main(argv: list[str] | None = None) -> int:
         help="One redemption per customer (code discounts only)",
     )
     args = parser.parse_args(argv)
+    configure_logging_from_args(args)
 
     cfg = load_config(args.config)
     mutation_name, mutation_text, variable_key, inp = _route(args)

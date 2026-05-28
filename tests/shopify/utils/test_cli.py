@@ -1,16 +1,46 @@
 import argparse
+import logging
 
-from shopify.utils.cli import add_common_flags, format_output
+from shopify.utils.cli import add_common_flags, configure_logging_from_args, format_output
 
 
 def test_add_common_flags_adds_all_expected():
     parser = argparse.ArgumentParser()
     add_common_flags(parser)
-    ns = parser.parse_args(["--market", "se", "--dry-run", "--output", "json", "--limit", "10"])
-    assert ns.market == "se"
+    ns = parser.parse_args(["--dry-run", "--output", "json", "--limit", "10", "--verbose"])
     assert ns.dry_run is True
     assert ns.output == "json"
     assert ns.limit == 10
+    assert ns.verbose is True
+
+
+def test_add_common_flags_no_longer_registers_market():
+    parser = argparse.ArgumentParser()
+    add_common_flags(parser)
+    # --market was removed; argparse should reject it.
+    import pytest
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(["--market", "se"])
+
+
+def test_configure_logging_from_args_sets_debug_when_verbose():
+    parser = argparse.ArgumentParser()
+    add_common_flags(parser)
+    ns = parser.parse_args(["--verbose"])
+    # Reset to a known state so the test is deterministic.
+    logging.getLogger("ecom").setLevel(logging.WARNING)
+    configure_logging_from_args(ns)
+    assert logging.getLogger("ecom").level == logging.DEBUG
+
+
+def test_configure_logging_from_args_noop_without_verbose():
+    parser = argparse.ArgumentParser()
+    add_common_flags(parser)
+    ns = parser.parse_args([])
+    logging.getLogger("ecom").setLevel(logging.WARNING)
+    configure_logging_from_args(ns)
+    assert logging.getLogger("ecom").level == logging.WARNING
 
 
 def test_format_output_json():

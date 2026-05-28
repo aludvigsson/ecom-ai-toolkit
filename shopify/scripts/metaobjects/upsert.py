@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from core.config import load_config
-from shopify.utils.cli import add_common_flags, format_output
+from shopify.utils.cli import add_common_flags, configure_logging_from_args, format_output
 from shopify.utils.client import ShopifyClient, check_user_errors
 
 _MUTATION = """
@@ -65,6 +65,7 @@ def main(argv: list[str] | None = None) -> int:
         help="Path to JSON, inline JSON, or '-' for stdin",
     )
     args = parser.parse_args(argv)
+    configure_logging_from_args(args)
 
     fields = _normalise_fields(_read_fields(args.fields))
     handle_input = {"type": args.type, "handle": args.handle}

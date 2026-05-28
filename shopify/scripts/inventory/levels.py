@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 from core.config import load_config
-from shopify.utils.cli import add_common_flags, format_output
+from shopify.utils.cli import add_common_flags, configure_logging_from_args, format_output
 from shopify.utils.client import (
     AmbiguousSkuError,
     ShopifyClient,
@@ -110,6 +110,7 @@ def main(argv: list[str] | None = None) -> int:
         help="Path to CSV with a 'sku' column",
     )
     args = parser.parse_args(argv)
+    configure_logging_from_args(args)
 
     skus = _read_skus_from_csv(Path(args.from_csv)) if args.from_csv else list(args.sku or [])
 

@@ -15,7 +15,7 @@ import argparse
 import sys
 
 from core.config import load_config
-from shopify.utils.cli import add_common_flags
+from shopify.utils.cli import add_common_flags, configure_logging_from_args
 from shopify.utils.client import ShopifyClient, check_user_errors
 
 _DETECT_QUERY = """
@@ -69,6 +69,7 @@ def main(argv: list[str] | None = None) -> int:
         help="Confirm destructive deletion (required for live execution)",
     )
     args = parser.parse_args(argv)
+    configure_logging_from_args(args)
 
     if not args.dry_run and not args.yes:
         parser.error("--yes is required to confirm deletion; aborting")

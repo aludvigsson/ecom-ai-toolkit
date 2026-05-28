@@ -9,7 +9,7 @@ import argparse
 import sys
 
 from core.config import load_config
-from shopify.utils.cli import add_common_flags, format_output
+from shopify.utils.cli import add_common_flags, configure_logging_from_args, format_output
 from shopify.utils.client import ShopifyClient
 
 _QUERY = """
@@ -37,6 +37,7 @@ def main(argv: list[str] | None = None) -> int:
     selector.add_argument("--handle", help="Product handle")
     parser.add_argument("--locale", help="Locale code for translations")
     args = parser.parse_args(argv)
+    configure_logging_from_args(args)
 
     cfg = load_config(args.config)
     variables = {"id": args.id, "handle": args.handle, "locale": args.locale}

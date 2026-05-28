@@ -12,7 +12,7 @@ import argparse
 import sys
 
 from core.config import load_config
-from shopify.utils.cli import add_common_flags, format_output
+from shopify.utils.cli import add_common_flags, configure_logging_from_args, format_output
 from shopify.utils.client import ShopifyClient, check_user_errors
 from shopify.utils.csv_io import read_csv_dicts
 
@@ -78,6 +78,7 @@ def main(argv: list[str] | None = None) -> int:
     source.add_argument("--from-csv", help="CSV with product_id or handle column")
     source.add_argument("--handles", help="Comma-separated product handles")
     args = parser.parse_args(argv)
+    configure_logging_from_args(args)
 
     cfg = load_config(args.config)
 
