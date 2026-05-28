@@ -32,8 +32,8 @@ def _build_input(args: argparse.Namespace) -> dict:
     inp: dict = {"id": args.id}
     if args.title is not None:
         inp["title"] = args.title
-    if args.description is not None:
-        inp["descriptionHtml"] = args.description
+    if args.description_html is not None:
+        inp["descriptionHtml"] = args.description_html
     if args.status is not None:
         inp["status"] = args.status
     if args.tags is not None:
@@ -48,7 +48,10 @@ def main(argv: list[str] | None = None) -> int:
     add_common_flags(parser)
     parser.add_argument("--id", required=True, help="Product GID")
     parser.add_argument("--title")
-    parser.add_argument("--description", help="HTML description body")
+    parser.add_argument(
+        "--description-html",
+        help="HTML body (Shopify productUpdate.descriptionHtml). Must be valid HTML; not auto-escaped.",
+    )
     parser.add_argument("--status", choices=("ACTIVE", "DRAFT", "ARCHIVED"))
     parser.add_argument("--tags", help="Comma-separated tags")
     parser.add_argument("--vendor")

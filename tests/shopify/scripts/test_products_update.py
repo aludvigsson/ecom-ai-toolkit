@@ -93,7 +93,7 @@ def test_update_sends_tags_as_list_and_descriptionHtml(monkeypatch):
                 "DRAFT",
                 "--tags",
                 "a,b,c",
-                "--description",
+                "--description-html",
                 "<p>hi</p>",
                 "--vendor",
                 "Acme",
