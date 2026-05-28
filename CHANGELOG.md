@@ -2,6 +2,18 @@
 
 All notable changes documented here. Format follows [keep-a-changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.5.1] — 2026-05-28
+
+### Fixed
+- **Webhook receiver fails fast on a missing `SHOPIFY_WEBHOOK_SECRET`** (Plan-5 I-1). Previously the app booted, `/healthz` returned `200`, and every webhook POST `500`ed — the health check masked the misconfiguration. Now a lifespan startup check crashes the process at boot, and `/healthz` returns `503 {"status":"degraded"}` while the secret is unset.
+
+### Added
+- `Dockerfile` `HEALTHCHECK` wired to `/healthz` so a misconfigured receiver is marked unhealthy (Plan-5 S-4).
+- Receiver logs `X-Shopify-Webhook-Id` on dispatch to support handler-side dedupe.
+
+### Docs
+- `shopify-webhooks` skill + handler stub TODOs now cover production handler guidance: respond fast / offload slow work (Shopify ~5s timeout), and make handlers idempotent against retries and duplicate deliveries (Plan-5 I-2/I-3).
+
 ## [0.5.0] — 2026-05-28
 
 ### Added
