@@ -286,6 +286,17 @@ def test_bulk_prices_chunks_at_250(monkeypatch, tmp_path):
         assert len(second["variants"]) == 10
 
 
+def test_save_state_to_path_is_atomic(tmp_path):
+    from shopify.scripts.products.bulk_prices import _save_state_to_path
+
+    target = tmp_path / "state.json"
+    _save_state_to_path(target, {"a": 1})
+    assert target.exists()
+    # No tmp file should remain after a successful save.
+    tmps = list(tmp_path.glob("*.tmp*"))
+    assert tmps == []
+
+
 def test_bulk_prices_raises_on_ambiguous_sku(monkeypatch, tmp_path):
     monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
     monkeypatch.chdir(tmp_path)

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -85,8 +86,11 @@ def _load_resume(path: Path) -> dict:
 
 
 def _save_state_to_path(path: Path, data: dict) -> None:
+    """Atomic write via tmp + os.replace (mirrors core.state.save_state)."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
+    os.replace(tmp, path)
 
 
 def _read_rows(csv_path: Path) -> list[dict[str, str]]:
