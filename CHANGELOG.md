@@ -2,6 +2,20 @@
 
 All notable changes documented here. Format follows [keep-a-changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.5.0] — 2026-05-28
+
+### Added
+- **Webhooks CRUD:** `shopify/scripts/webhooks/{list,create,delete}.py` — list subscriptions (with `--topic` filter and flattened HTTP/EventBridge/PubSub endpoints), create HTTPS subscriptions (`--topic`, `--callback-url`, `--format`, `--dry-run`), and delete by `--id` (gated behind `--yes`, supports `--dry-run`).
+- **Webhook receiver:** runnable FastAPI app at `shopify/scripts/webhooks/receiver/` — verifies Shopify HMAC SHA256 (`SHOPIFY_WEBHOOK_SECRET`) and dispatches payloads to per-topic handler stubs (`orders/create`, `orders/updated`, `products/update`, `app/uninstalled`). `POST /webhooks/{ns}/{name}` → `401` bad signature, `404` unknown topic, `400` malformed JSON; `GET /healthz`. Includes `Dockerfile` and `README.md`.
+- Skill: `shopify-webhooks` covering CRUD scripts + receiver setup.
+
+### Boundaries
+- The receiver ships as runnable code, not a deployed service. Deployment (Cloud Run, Fly, a VPS, etc.) is the consumer's concern.
+- `create.py` creates HTTP subscriptions only; EventBridge/PubSub creation needs the Admin API directly.
+
+### Changed
+- CI now installs the `webhooks` extra and runs the full `tests/` suite (including receiver tests).
+
 ## [0.4.1] — 2026-05-28
 
 ### Added
