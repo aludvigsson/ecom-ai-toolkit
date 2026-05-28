@@ -463,7 +463,39 @@ Single skill covers CRUD + receiver setup per spec § 6.6. Triggers: "list webho
 
 ---
 
-## Task 9: Smoke + final sweep
+## Task 9: Update CI to install `webhooks` extra
+
+**Files:**
+- Modify: `.github/workflows/ci.yml`
+
+Receiver tests require `fastapi`/`uvicorn` from the `webhooks` extra. Plan 1's CI workflow installs only `--extra dev --extra shopify`, so receiver tests would fail to import.
+
+- [ ] **Step 1: Update the `Sync deps` step**
+
+Change the line in `.github/workflows/ci.yml`:
+```yaml
+- name: Sync deps
+  run: uv sync --extra dev --extra shopify --extra webhooks
+```
+
+And widen the test step to include the receiver tests:
+```yaml
+- name: Run unit tests
+  run: uv run pytest tests/ --ignore=tests/shopify/test_whoami_integration.py
+```
+
+- [ ] **Step 2: Run CI workflow locally if possible (e.g. via `act`), or push a branch and verify GitHub Actions goes green**
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add .github/workflows/ci.yml
+git commit -m "ci: install webhooks extra and run receiver tests"
+```
+
+---
+
+## Task 10: Smoke + final sweep
 
 - [ ] Full test suite: `uv run pytest -v` (now includes receiver tests).
 - [ ] Ruff clean.
@@ -481,5 +513,5 @@ Single skill covers CRUD + receiver setup per spec § 6.6. Triggers: "list webho
 - [ ] App handles valid/invalid/unknown-topic cases (TestClient tests pass).
 - [ ] Receiver README documents local run, container, and deploy hints.
 - [ ] `shopify-webhooks` skill covers CRUD + receiver setup.
-- [ ] CI green (note: receiver tests require `webhooks` extra — update CI workflow to `uv sync --extra dev --extra shopify --extra webhooks` if necessary).
+- [ ] CI green (with Task 9 applied — `webhooks` extra installed in workflow and receiver tests in suite).
 - [ ] CHANGELOG bumped.

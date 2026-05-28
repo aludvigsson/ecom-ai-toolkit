@@ -158,17 +158,8 @@ git commit -m "build: bootstrap uv project with shopify and dev extras"
 
 - [ ] **Step 1: Add ignore patterns** (idempotent — patterns may already exist)
 
-Append to `.gitignore` (deduplicated):
-```
-uv.lock
-!uv.lock
-node_modules/
-.coverage
-htmlcov/
-```
-Note: the `!uv.lock` line ensures we *do* commit it (default ignore patterns don't catch it; this is a reminder for the reader). Actually delete the two `uv.lock` lines if they cause confusion — uv.lock should be committed, just leave `.gitignore` as-is.
+Append the following to `.gitignore`. Do NOT add any `uv.lock` line — `uv.lock` must be committed.
 
-Final additions:
 ```
 node_modules/
 .coverage
@@ -1352,7 +1343,6 @@ from shopify.scripts import whoami
 
 def test_whoami_prints_shop_name(monkeypatch, capsys):
     monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
-    monkeypatch.chdir(monkeypatch.helpers if False else ".")
     fake_data = {"shop": {"name": "My Test Shop", "primaryDomain": {"url": "https://x.com"}, "plan": {"displayName": "Basic"}}}
     with patch("shopify.scripts.whoami.load_config") as mock_cfg, \
          patch("shopify.scripts.whoami.ShopifyClient") as mock_client:

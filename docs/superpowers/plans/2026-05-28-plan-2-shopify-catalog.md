@@ -356,6 +356,8 @@ mutation ProductUpdate($input: ProductInput!) {
 
 The most complex catalog script — uses `productVariantsBulkUpdate` in chunks of 250 variants, writes a state file for resumability.
 
+> **Note on Bulk Operations API:** Spec § 6.5 lists `ShopifyClient.bulk_mutation()` (Shopify Bulk Operations file-upload mutations) as part of the client surface. This script intentionally does NOT use it — chunked `productVariantsBulkUpdate` is the correct shape for variant pricing updates. `bulk_mutation()` is deferred until a future script genuinely needs JSONL-style bulk writes; when that happens, implement it on `ShopifyClient` as a separate sub-task in that plan (test cases mirror `bulk_query` from Plan 3 Task 2 Step 0).
+
 - [ ] **Step 1: Test:** mocked — verify
   - CSV with 3 rows produces one mutation call.
   - State file is written under `.state/shopify/bulk_prices_<timestamp>.json` with completed SKUs.
