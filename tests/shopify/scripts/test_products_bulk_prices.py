@@ -198,6 +198,7 @@ def test_bulk_prices_resume_skips_completed_variants(monkeypatch, tmp_path):
     state_path.write_text(
         json.dumps(
             {
+                "schema_version": 1,
                 "started_at": "2026-01-01T000000",
                 "csv_path": str(csv_path),
                 "sku_to_variant_id": {},
@@ -249,6 +250,7 @@ def test_bulk_prices_chunks_at_250(monkeypatch, tmp_path):
     state_path.write_text(
         json.dumps(
             {
+                "schema_version": 1,
                 "started_at": "2026-01-01T000000",
                 "csv_path": str(csv_path),
                 "sku_to_variant_id": {},

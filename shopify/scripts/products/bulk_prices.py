@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from core.config import load_config
-from core.state import save_state
+from core.state import StateSchemaError, save_state
 from shopify.utils.cli import add_common_flags, configure_logging_from_args
 from shopify.utils.client import (
     AmbiguousSkuError,
@@ -33,6 +33,7 @@ from shopify.utils.csv_io import read_csv_dicts
 from shopify.utils.search import escape_search_value
 
 _CHUNK_SIZE = 250
+_STATE_SCHEMA_VERSION = 1
 
 # Used for both sku:'...' and id:... variant lookups.
 _LOOKUP_QUERY = """
@@ -64,6 +65,12 @@ def _utc_timestamp() -> str:
 
 def _load_resume(path: Path) -> dict:
     state = json.loads(path.read_text(encoding="utf-8"))
+    actual = state.get("schema_version")
+    if actual != _STATE_SCHEMA_VERSION:
+        raise StateSchemaError(
+            f"Resume state file {path} has schema_version={actual!r}; "
+            f"expected {_STATE_SCHEMA_VERSION}. Migrate or delete the file before resuming."
+        )
     state.setdefault("sku_to_variant_id", {})
     state.setdefault("completed_variant_ids", [])
     state.setdefault("variant_to_product", {})
@@ -160,6 +167,7 @@ def main(argv: list[str] | None = None) -> int:
         ts = _utc_timestamp()
         csv_path = Path(args.from_csv)
         state = {
+            "schema_version": _STATE_SCHEMA_VERSION,
             "started_at": ts,
             "csv_path": str(csv_path),
             "sku_to_variant_id": {},
