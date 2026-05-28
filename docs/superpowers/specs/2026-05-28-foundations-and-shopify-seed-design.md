@@ -101,7 +101,9 @@ ecom-ai-toolkit/
 └── LICENSE
 ```
 
-**Folder naming convention:** Python import paths require underscores (`meta_ads/`); skill folders are kebab-case (`meta-ads-cli/`) per Claude Code convention.
+**Folder naming convention:** Python import paths require underscores (`meta_ads/`); skill folders are kebab-case (e.g. `shopify-products/`) per Claude Code convention.
+
+**Webhook subpackage:** `shopify/scripts/webhooks/` contains both CLI scripts (`list.py`, `create.py`, `delete.py`) **and** the optional FastAPI receiver subpackage (`receiver/`). See § 6.3 for the receiver's boundaries.
 
 ---
 
@@ -185,7 +187,7 @@ Idempotency + audit trail — a `*_state.json` file per long-running or destruct
     archive_se_meta_campaign_state.json
 ```
 
-`core.state.save(domain, name, data: dict)` writes atomically (`tmp` + `os.replace`). `core.state.load(domain, name) -> dict | None`. Always JSON. Always under `.state/`. Always gitignored.
+`core.state.save_state(domain, name, data: dict)` writes atomically (`tmp` + `os.replace`). `core.state.load_state(domain, name) -> dict | None`. Always JSON. Always under `.state/`. Always gitignored.
 
 ### 5.4 `core/http.py`
 
@@ -214,7 +216,8 @@ That is the entire public surface of `core/`. Domains that need anything else ad
 ### 5.7 Per-domain `utils/client.py` contract
 
 Each domain ships a class that:
-- Accepts `(config: StoreConfig, secrets: SecretsProvider)` in `__init__`.
+- Accepts `config: StoreConfig` in `__init__`.
+- Reads its own secrets via `core.secrets.require_secret(...)` at construction time, failing fast if anything is missing.
 - Subclasses `core.http.HttpClient` (or composes one internally).
 - Exposes API-specific high-level methods (`shopify.graphql(query, vars)`, `shopify.bulk_query(query)`, …).
 - Is the only thing scripts in that domain import for network access.
@@ -330,7 +333,7 @@ Methods:
 | `shopify-products` | `products/*` |
 | `shopify-orders` | `orders/*` |
 | `shopify-customers` | `customers/*` |
-| `shopify-metafields` | `metafields/*` + `metaobjects/*` |
+| `shopify-metafields` | `metafields/*` + `metaobjects/*` (skill `SKILL.md` references both script subdirectories) |
 | `shopify-translations` | `translations/*` |
 | `shopify-discounts` | `discounts/*` |
 | `shopify-collections` | `collections/*` |
