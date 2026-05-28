@@ -28,17 +28,10 @@ from shopify.utils.search import escape_search_value
 
 _CHUNK_SIZE = 250
 
+# Used for both sku:'...' and id:... variant lookups.
 _LOOKUP_QUERY = """
 query VariantLookup($q: String!) {
   productVariants(first: 2, query: $q) {
-    edges { node { id product { id } } }
-  }
-}
-"""
-
-_LOOKUP_BY_ID_QUERY = """
-query VariantById($q: String!) {
-  productVariants(first: 1, query: $q) {
     edges { node { id product { id } } }
   }
 }
@@ -115,7 +108,7 @@ def _resolve_variant(
         product_id = state["variant_to_product"].get(variant_id)
         if product_id:
             return variant_id, product_id
-        data = client.graphql(_LOOKUP_BY_ID_QUERY, {"q": f"id:{variant_id.rsplit('/', 1)[-1]}"})
+        data = client.graphql(_LOOKUP_QUERY, {"q": f"id:{variant_id.rsplit('/', 1)[-1]}"})
         edges = data.get("productVariants", {}).get("edges", [])
         if not edges:
             return None
