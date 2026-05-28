@@ -2,13 +2,13 @@ import sys
 from contextlib import ExitStack
 from unittest.mock import patch
 
-from shopify.scripts.collections import add_products as cmd
+from shopify.scripts.collection import add_products as cmd
 
 
 def _setup_mocks(stack):
-    mock_cfg = stack.enter_context(patch("shopify.scripts.collections.add_products.load_config"))
+    mock_cfg = stack.enter_context(patch("shopify.scripts.collection.add_products.load_config"))
     mock_client_class = stack.enter_context(
-        patch("shopify.scripts.collections.add_products.ShopifyClient")
+        patch("shopify.scripts.collection.add_products.ShopifyClient")
     )
     mock_cfg.return_value.store.shopify_domain = "x.myshopify.com"
     mock_cfg.return_value.domains = {

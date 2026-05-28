@@ -22,10 +22,10 @@
 | `shopify/scripts/products/get.py` | Deep read of one product (variants + metafields + translations) |
 | `shopify/scripts/products/update.py` | Update title/description/status/tags/vendor |
 | `shopify/scripts/products/bulk_prices.py` | CSV → `productVariantsBulkUpdate`; state file in `.state/shopify/` |
-| `shopify/scripts/collections/list.py` | List collections (smart and custom) |
-| `shopify/scripts/collections/create.py` | Create a custom or smart collection |
-| `shopify/scripts/collections/update.py` | Update a collection's title/rules/SEO |
-| `shopify/scripts/collections/add_products.py` | Bulk add products to a custom collection |
+| `shopify/scripts/collection/list.py` | List collections (smart and custom) |
+| `shopify/scripts/collection/create.py` | Create a custom or smart collection |
+| `shopify/scripts/collection/update.py` | Update a collection's title/rules/SEO |
+| `shopify/scripts/collection/add_products.py` | Bulk add products to a custom collection |
 | `shopify/scripts/metafields/list.py` | List metafields on a resource |
 | `shopify/scripts/metafields/set.py` | Upsert metafields (CLI or stdin JSON batch) |
 | `shopify/scripts/metaobjects/list.py` | List metaobjects by type |
@@ -399,7 +399,7 @@ git commit -m "feat(skills): shopify-products"
 
 ---
 
-## Task 6: `shopify/scripts/collections/list.py`
+## Task 6: `shopify/scripts/collection/list.py`
 
 - [ ] **Step 1: Test (mocked):** verify both smart and custom collections appear; pagination works.
 
@@ -418,7 +418,7 @@ query Collections($first: Int!, $query: String) {
 
 ---
 
-## Task 7: `shopify/scripts/collections/create.py`
+## Task 7: `shopify/scripts/collection/create.py`
 
 Two mutations depending on type: `collectionCreate(input: CollectionInput!)` (custom) and same with `ruleSet` for smart.
 
@@ -428,7 +428,7 @@ Two mutations depending on type: `collectionCreate(input: CollectionInput!)` (cu
 
 ---
 
-## Task 8: `shopify/scripts/collections/update.py`
+## Task 8: `shopify/scripts/collection/update.py`
 
 - [ ] **Step 1: Test:** mocked — verify only provided fields are sent.
 - [ ] **Step 2: Implement.** Same flags as create, plus `--id` required. Uses `collectionUpdate`.
@@ -436,7 +436,7 @@ Two mutations depending on type: `collectionCreate(input: CollectionInput!)` (cu
 
 ---
 
-## Task 9: `shopify/scripts/collections/add_products.py`
+## Task 9: `shopify/scripts/collection/add_products.py`
 
 Uses `collectionAddProducts(id: ID!, productIds: [ID!]!)` in chunks of 250.
 

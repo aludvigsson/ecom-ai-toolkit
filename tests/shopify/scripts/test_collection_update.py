@@ -5,14 +5,14 @@ from unittest.mock import patch
 
 import pytest
 
-from shopify.scripts.collections import update as updatecmd
+from shopify.scripts.collection import update as updatecmd
 from shopify.utils.client import ShopifyUserError
 
 
 def _setup_mocks(stack):
-    mock_cfg = stack.enter_context(patch("shopify.scripts.collections.update.load_config"))
+    mock_cfg = stack.enter_context(patch("shopify.scripts.collection.update.load_config"))
     mock_client_class = stack.enter_context(
-        patch("shopify.scripts.collections.update.ShopifyClient")
+        patch("shopify.scripts.collection.update.ShopifyClient")
     )
     mock_cfg.return_value.store.shopify_domain = "x.myshopify.com"
     mock_cfg.return_value.domains = {

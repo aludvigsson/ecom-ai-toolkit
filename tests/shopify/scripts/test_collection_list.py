@@ -3,12 +3,12 @@ import sys
 from contextlib import ExitStack
 from unittest.mock import patch
 
-from shopify.scripts.collections import list as listcmd
+from shopify.scripts.collection import list as listcmd
 
 
 def _setup_mocks(stack):
-    mock_cfg = stack.enter_context(patch("shopify.scripts.collections.list.load_config"))
-    mock_client_class = stack.enter_context(patch("shopify.scripts.collections.list.ShopifyClient"))
+    mock_cfg = stack.enter_context(patch("shopify.scripts.collection.list.load_config"))
+    mock_client_class = stack.enter_context(patch("shopify.scripts.collection.list.ShopifyClient"))
     mock_cfg.return_value.store.shopify_domain = "x.myshopify.com"
     mock_cfg.return_value.domains = {
         "shopify": type("D", (), {"api_version": "2025-10", "enabled": True})()

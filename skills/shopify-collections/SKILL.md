@@ -32,7 +32,7 @@ If any script in this skill returns an auth-shaped error, stop and delegate to `
 ### 1. List all collections
 
 ```bash
-uv run shopify/scripts/collections/list.py --limit 100
+uv run shopify/scripts/collection/list.py --limit 100
 ```
 
 Output formats: `--output table|json|markdown`. Pass `--query` for raw Shopify collection search syntax.
@@ -40,7 +40,7 @@ Output formats: `--output table|json|markdown`. Pass `--query` for raw Shopify c
 ### 2. List smart collections only
 
 ```bash
-uv run shopify/scripts/collections/list.py --type smart
+uv run shopify/scripts/collection/list.py --type smart
 ```
 
 `--type` accepts `smart`, `custom`, or `all` (default). Internally this translates to a `collection_type:smart|custom` clause appended to any `--query` you also pass.
@@ -48,7 +48,7 @@ uv run shopify/scripts/collections/list.py --type smart
 ### 3. Create a custom collection (dry-run, then for real)
 
 ```bash
-uv run shopify/scripts/collections/create.py \
+uv run shopify/scripts/collection/create.py \
   --title "Summer 2026" \
   --handle summer-2026 \
   --dry-run
@@ -57,7 +57,7 @@ uv run shopify/scripts/collections/create.py \
 Dry-run prints the would-be `CollectionInput` and exits 0. Once it looks right, drop the flag:
 
 ```bash
-uv run shopify/scripts/collections/create.py \
+uv run shopify/scripts/collection/create.py \
   --title "Summer 2026" \
   --handle summer-2026
 ```
@@ -67,7 +67,7 @@ Other optional flags: `--description-html` (HTML, see pitfall below), `--sort-or
 ### 4. Create a smart collection from a rules JSON file
 
 ```bash
-uv run shopify/scripts/collections/create.py \
+uv run shopify/scripts/collection/create.py \
   --title "Sale" \
   --rules rules.json
 ```
@@ -89,7 +89,7 @@ uv run shopify/scripts/collections/create.py \
 ### 5. Update a collection's sort order
 
 ```bash
-uv run shopify/scripts/collections/update.py \
+uv run shopify/scripts/collection/update.py \
   --id gid://shopify/Collection/12345 \
   --sort-order BEST_SELLING
 ```
@@ -99,7 +99,7 @@ Updatable flags: `--title`, `--handle`, `--description-html`, `--sort-order`, `-
 ### 6. Bulk-add products by handle
 
 ```bash
-uv run shopify/scripts/collections/add_products.py \
+uv run shopify/scripts/collection/add_products.py \
   --collection-id gid://shopify/Collection/12345 \
   --handles pearl-classic,fluffy-duvet
 ```
@@ -111,7 +111,7 @@ Handles are resolved to GIDs via `productByHandle` before the mutation. A missin
 CSV columns: `product_id` **OR** `handle` (one per row). If both are present on a row, `product_id` wins.
 
 ```bash
-uv run shopify/scripts/collections/add_products.py \
+uv run shopify/scripts/collection/add_products.py \
   --collection-id gid://shopify/Collection/12345 \
   --from-csv products.csv --dry-run
 ```
@@ -119,7 +119,7 @@ uv run shopify/scripts/collections/add_products.py \
 Dry-run prints the chunked payload (250 product IDs per chunk) and exits 0. Then run for real:
 
 ```bash
-uv run shopify/scripts/collections/add_products.py \
+uv run shopify/scripts/collection/add_products.py \
   --collection-id gid://shopify/Collection/12345 \
   --from-csv products.csv
 ```
