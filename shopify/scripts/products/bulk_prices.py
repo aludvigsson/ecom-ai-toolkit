@@ -24,6 +24,7 @@ from core.state import save_state
 from shopify.utils.cli import add_common_flags
 from shopify.utils.client import ShopifyClient
 from shopify.utils.csv_io import read_csv_dicts
+from shopify.utils.search import escape_search_value
 
 # Pull the static method out so tests that patch `ShopifyClient` in this
 # module's namespace don't replace the userErrors check.
@@ -112,7 +113,7 @@ def _resolve_variant(
             product_id = state["variant_to_product"].get(cached)
             if product_id:
                 return cached, product_id
-        data = client.graphql(_LOOKUP_QUERY, {"q": f"sku:'{sku}'"})
+        data = client.graphql(_LOOKUP_QUERY, {"q": f"sku:'{escape_search_value(sku)}'"})
         edges = data.get("productVariants", {}).get("edges", [])
         if not edges:
             return None

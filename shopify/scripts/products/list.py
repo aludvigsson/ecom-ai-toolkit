@@ -8,6 +8,7 @@ import sys
 from core.config import load_config
 from shopify.utils.cli import add_common_flags, format_output
 from shopify.utils.client import ShopifyClient
+from shopify.utils.search import escape_search_value
 
 _QUERY = """
 query Products($first: Int!, $query: String) {
@@ -38,9 +39,9 @@ def _build_query(
     if status:
         parts.append(f"status:{status.lower()}")
     if vendor:
-        parts.append(f"vendor:'{vendor}'")
+        parts.append(f"vendor:'{escape_search_value(vendor)}'")
     if tag:
-        parts.append(f"tag:'{tag}'")
+        parts.append(f"tag:'{escape_search_value(tag)}'")
     if raw:
         parts.append(raw)
     return " ".join(parts) if parts else None

@@ -68,6 +68,19 @@ def test_list_products_composes_query_from_status_and_vendor(monkeypatch):
         assert variables["query"] == "status:active vendor:'Acme'"
 
 
+def test_list_products_query_escapes_apostrophe_in_vendor(monkeypatch):
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
+    with ExitStack() as stack:
+        _, _, client = _setup_mocks(stack)
+        client.graphql.return_value = {
+            "products": {"edges": [], "pageInfo": {"hasNextPage": False, "endCursor": None}}
+        }
+        with patch.object(sys, "argv", ["list.py", "--vendor", "O'Brien"]):
+            assert listcmd.main() == 0
+        variables = _variables_from_call(client.graphql.call_args)
+        assert variables["query"] == r"vendor:'O\'Brien'"
+
+
 def test_list_products_query_composes_tag_and_raw(monkeypatch):
     monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
     with ExitStack() as stack:
