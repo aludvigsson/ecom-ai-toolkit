@@ -106,10 +106,13 @@ class _RedactingFilter(logging.Filter):
     _SENSITIVE_SUBSTRINGS = (
         "authorization:",
         "authorization=",
+        "bearer ",
         "x-shopify-access-token",
+        "x-shopify-storefront-private-token",
+        "x-shopify-hmac-sha256",
         "x-api-key",
         "api-key=",
-        "bearer ",
+        "token: ",
     )
 
     def filter(self, record: logging.LogRecord) -> bool:

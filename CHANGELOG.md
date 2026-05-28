@@ -13,7 +13,7 @@ All notable changes documented here. Format follows [keep-a-changelog](https://k
 - `ShopifyGraphQLError` now carries the partial `.data` when Shopify returns both `data` and `errors` in the same response (Plan-1 deferred-concerns #15).
 - `ShopifyUserError` + `ShopifyClient.check_user_errors(payload, mutation=...)` helper for surfacing mutation-level userErrors consistently (Plan-1 deferred-concerns #16).
 
-## [0.1.0] — unreleased
+## [0.1.0] — 2026-05-28
 
 ### Added
 - Foundations: `core/` (config, secrets, state, http, logging) and packaging.

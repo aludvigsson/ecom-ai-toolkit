@@ -19,9 +19,12 @@ class ShopifyGraphQLError(RuntimeError):
     success on list queries, for example). Plan-1 deferred-concerns item #15:
     callers that want to recover from partial failures can read `.data` after
     catching this exception.
+
+    Note: ``data`` may be ``None`` (Shopify returned only errors) and any nested
+    field may itself be ``None``. Callers must guard before drilling into it.
     """
 
-    def __init__(self, message: str, *, data: dict | None = None) -> None:
+    def __init__(self, message: str, *, data: dict[str, Any] | None = None) -> None:
         super().__init__(message)
         self.data = data
 
@@ -38,10 +41,15 @@ class ShopifyUserError(RuntimeError):
     def __init__(self, mutation: str, errors: list[dict]) -> None:
         self.mutation = mutation
         self.errors = errors
-        summary = "; ".join(
-            f"{', '.join(e.get('field') or [])}: {e.get('message', '?')}".strip(": ")
-            for e in errors
-        )
+        parts = []
+        for e in errors:
+            fields = e.get("field") or []
+            message = e.get("message", "?")
+            if fields:
+                parts.append(f"{', '.join(fields)}: {message}")
+            else:
+                parts.append(message)
+        summary = "; ".join(parts)
         super().__init__(f"{mutation} userErrors: {summary}")
 
 

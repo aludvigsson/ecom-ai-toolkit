@@ -71,3 +71,14 @@ def test_redacting_filter_does_not_false_positive_on_cursor_tokens(caplog):
     rendered = "\n".join(r.getMessage() for r in caplog.records)
     # The legitimate cursor should remain visible (was false-positive-redacted before).
     assert cursor in rendered
+
+
+def test_redacting_filter_blanks_token_header_dump_with_colon_space(caplog):
+    from core.http import _log  # noqa: PLC2701
+
+    secret = "shpat_secretvalue123"  # gitleaks:allow - synthetic test fixture
+    with caplog.at_level(logging.INFO, logger="ecom.http"):
+        _log.info("response headers: Token: %s", secret)
+    rendered = "\n".join(r.getMessage() for r in caplog.records)
+    assert secret not in rendered
+    assert "[redacted sensitive log line]" in rendered
