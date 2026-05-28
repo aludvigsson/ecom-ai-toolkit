@@ -1,0 +1,10 @@
+.env.local
+.env.local.*
+.state/
+workspace/
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.DS_Store
