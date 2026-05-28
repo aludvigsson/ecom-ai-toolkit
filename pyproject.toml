@@ -1,0 +1,44 @@
+[project]
+name = "ecom-ai-toolkit"
+version = "0.1.0"
+description = "Python ops scripts + skills for Shopify-centric ecommerce stacks"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Andreas Ludvigsson" }]
+dependencies = []
+
+[project.optional-dependencies]
+shopify         = ["httpx>=0.27", "pyyaml>=6", "pydantic>=2.7"]
+klaviyo         = []
+meta-ads        = []
+google-ads      = []
+microsoft-ads   = []
+merchant-center = []
+gtm             = []
+webhooks        = ["fastapi>=0.115", "uvicorn[standard]>=0.30"]
+all             = ["httpx>=0.27", "pyyaml>=6", "pydantic>=2.7", "fastapi>=0.115", "uvicorn[standard]>=0.30"]
+dev = [
+  "pytest>=8",
+  "pytest-httpx>=0.32",
+  "ruff>=0.6",
+  "pre-commit>=3",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM"]
+ignore = ["E501"]  # handled by formatter
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+  "integration: requires network and credentials; env-gated",
+]
+
+[tool.uv]
+# Plain library + scripts; no entry points yet.
