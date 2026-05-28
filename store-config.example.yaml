@@ -1,5 +1,10 @@
 # Per-store configuration. Copy to store-config.yaml and fill in.
 # store-config.yaml is gitignored; this example is committed.
+#
+# QUOTE all `code:` values. YAML 1.1 parses bare `no`, `yes`, `on`, `off`,
+# `y`, `n` (case-insensitive) as booleans. A Norwegian market with
+# `code: no` becomes `code: False` and breaks config validation. Always
+# wrap codes in double quotes — see the entries below for the pattern.
 
 store:
   name: "Example Store"
@@ -9,7 +14,7 @@ store:
   default_locale: en-US
 
 markets:
-  - code: us
+  - code: "us"
     name: United States
     locale: en-US
     currency: USD
