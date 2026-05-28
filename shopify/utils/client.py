@@ -193,22 +193,53 @@ class ShopifyClient:
             time.sleep(poll_interval)
 
         if not completed:
-            raise ShopifyBulkOperationError(
-                f"Bulk operation did not complete within {max_wait}s",
-                operation=last or {},
-            )
+            # Deadline expired during sleep — give the op one final un-timed
+            # poll before giving up. Cheap, and avoids a spurious failure when
+            # the next poll would have returned COMPLETED.
+            data = self.graphql(poll_query)
+            op = data.get("currentBulkOperation") or {}
+            status = op.get("status")
+            if status == "COMPLETED":
+                last = op
+                completed = True
+            elif status in ("FAILED", "CANCELED"):
+                raise ShopifyBulkOperationError(
+                    f"Bulk operation {status}: {op.get('errorCode') or 'unknown'}",
+                    operation=op,
+                )
+            else:
+                raise ShopifyBulkOperationError(
+                    f"Bulk operation did not complete within {max_wait}s",
+                    operation=last or op,
+                )
 
         url = (last or {}).get("url")
         if not url:
             return
 
-        with httpx.stream("GET", url, timeout=60.0) as response:
-            response.raise_for_status()
-            for raw_line in response.iter_lines():
-                line = raw_line.strip()
-                if not line:
+        # Retry the JSONL download up to 3 times on transient network errors.
+        # The bulk op has already produced its url; a single 5xx during download
+        # shouldn't lose us the whole result.
+        last_err: Exception | None = None
+        for attempt in range(3):
+            try:
+                with httpx.stream("GET", url, timeout=60.0) as response:
+                    response.raise_for_status()
+                    for raw_line in response.iter_lines():
+                        line = raw_line.strip()
+                        if not line:
+                            continue
+                        yield json.loads(line)
+                return
+            except httpx.HTTPError as exc:
+                last_err = exc
+                if attempt < 2:
+                    time.sleep(1.0)
                     continue
-                yield json.loads(line)
+        raise ShopifyBulkOperationError(
+            f"Failed to download bulk operation JSONL after 3 attempts: {last_err}",
+            operation=last or {},
+        )
 
     def __enter__(self) -> ShopifyClient:
         return self

@@ -241,3 +241,103 @@ def test_bulk_query_yields_nothing_when_url_is_empty(httpx_mock, monkeypatch, cf
     )
     client = ShopifyClient(config=cfg)
     assert list(client.bulk_query("query { x }", poll_interval=0.0, max_wait=10.0)) == []
+
+
+def test_bulk_query_does_one_final_poll_after_deadline(httpx_mock, monkeypatch, cfg):
+    """If max_wait expires between polls, do one final un-timed poll before raising.
+
+    Avoids spurious failures when the next poll would have returned COMPLETED.
+    """
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
+    # Mutation kickoff
+    httpx_mock.add_response(
+        method="POST",
+        url="https://test-store.myshopify.com/admin/api/2025-10/graphql.json",
+        json={
+            "data": {
+                "bulkOperationRunQuery": {
+                    "bulkOperation": {"id": "gid://bulk/1", "status": "CREATED"},
+                    "userErrors": [],
+                }
+            }
+        },
+    )
+    # First poll inside the loop: still RUNNING. With max_wait=0 the loop
+    # body never enters; the deadline-expired branch runs and we get one
+    # un-timed final poll.
+    # The final un-timed poll returns COMPLETED + url.
+    httpx_mock.add_response(
+        method="POST",
+        url="https://test-store.myshopify.com/admin/api/2025-10/graphql.json",
+        json={
+            "data": {
+                "currentBulkOperation": {
+                    "status": "COMPLETED",
+                    "url": "https://results.example/bulk.jsonl",
+                    "errorCode": None,
+                    "objectCount": 1,
+                    "id": "gid://bulk/1",
+                }
+            }
+        },
+    )
+    httpx_mock.add_response(
+        method="GET",
+        url="https://results.example/bulk.jsonl",
+        content=b'{"id":"gid://Order/1"}\n',
+    )
+    client = ShopifyClient(config=cfg)
+    rows = list(client.bulk_query("query { x }", poll_interval=0.0, max_wait=0.0))
+    assert rows == [{"id": "gid://Order/1"}]
+
+
+def test_bulk_query_retries_jsonl_download_on_transient_error(httpx_mock, monkeypatch, cfg):
+    """A single 5xx during the JSONL download is retried (up to 3 attempts)."""
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
+    httpx_mock.add_response(
+        method="POST",
+        url="https://test-store.myshopify.com/admin/api/2025-10/graphql.json",
+        json={
+            "data": {
+                "bulkOperationRunQuery": {
+                    "bulkOperation": {"id": "gid://bulk/1", "status": "CREATED"},
+                    "userErrors": [],
+                }
+            }
+        },
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://test-store.myshopify.com/admin/api/2025-10/graphql.json",
+        json={
+            "data": {
+                "currentBulkOperation": {
+                    "status": "COMPLETED",
+                    "url": "https://results.example/bulk.jsonl",
+                    "errorCode": None,
+                    "objectCount": 1,
+                    "id": "gid://bulk/1",
+                }
+            }
+        },
+    )
+    # First download attempt: 500. Second attempt: success.
+    httpx_mock.add_response(
+        method="GET",
+        url="https://results.example/bulk.jsonl",
+        status_code=500,
+        content=b"oh no",
+    )
+    httpx_mock.add_response(
+        method="GET",
+        url="https://results.example/bulk.jsonl",
+        content=b'{"id":"gid://Order/1"}\n',
+    )
+
+    # Patch time.sleep so the retry backoff doesn't slow the test.
+    import shopify.utils.client as client_mod
+
+    monkeypatch.setattr(client_mod.time, "sleep", lambda *_a, **_k: None)
+    client = ShopifyClient(config=cfg)
+    rows = list(client.bulk_query("query { x }", poll_interval=0.0, max_wait=10.0))
+    assert rows == [{"id": "gid://Order/1"}]
