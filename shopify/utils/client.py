@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
+import json
+import time
+from collections.abc import Iterator
 from typing import Any
+
+import httpx
 
 from core.config import StoreConfig
 from core.http import HttpClient
@@ -51,6 +56,14 @@ class ShopifyUserError(RuntimeError):
                 parts.append(message)
         summary = "; ".join(parts)
         super().__init__(f"{mutation} userErrors: {summary}")
+
+
+class ShopifyBulkOperationError(RuntimeError):
+    """Raised when a bulk operation fails, is canceled, or times out."""
+
+    def __init__(self, message: str, *, operation: dict[str, Any]) -> None:
+        super().__init__(message)
+        self.operation = operation
 
 
 class AmbiguousSkuError(RuntimeError):
@@ -135,6 +148,67 @@ class ShopifyClient:
     def check_user_errors(data: dict, *, mutation: str) -> None:
         """Back-compat shim; delegates to the module-level check_user_errors."""
         check_user_errors(data, mutation=mutation)
+
+    def bulk_query(
+        self,
+        query: str,
+        *,
+        poll_interval: float = 2.0,
+        max_wait: float = 300.0,
+    ) -> Iterator[dict[str, Any]]:
+        """Run a Shopify Bulk Operations query and yield parsed JSONL rows.
+
+        Blocks until the operation completes (or times out / fails).
+        See spec § 6.5.
+        """
+        run_mutation = """
+        mutation BulkOp($query: String!) {
+          bulkOperationRunQuery(query: $query) {
+            bulkOperation { id status }
+            userErrors { field message }
+          }
+        }
+        """
+        self.graphql(run_mutation, {"query": query})
+
+        poll_query = """
+        query { currentBulkOperation { id status errorCode url objectCount } }
+        """
+        deadline = time.monotonic() + max_wait
+        last: dict[str, Any] | None = None
+        completed = False
+        while time.monotonic() < deadline:
+            data = self.graphql(poll_query)
+            op = data.get("currentBulkOperation") or {}
+            last = op
+            status = op.get("status")
+            if status == "COMPLETED":
+                completed = True
+                break
+            if status in ("FAILED", "CANCELED"):
+                raise ShopifyBulkOperationError(
+                    f"Bulk operation {status}: {op.get('errorCode') or 'unknown'}",
+                    operation=op,
+                )
+            time.sleep(poll_interval)
+
+        if not completed:
+            raise ShopifyBulkOperationError(
+                f"Bulk operation did not complete within {max_wait}s",
+                operation=last or {},
+            )
+
+        url = (last or {}).get("url")
+        if not url:
+            return
+
+        with httpx.stream("GET", url, timeout=60.0) as response:
+            response.raise_for_status()
+            for raw_line in response.iter_lines():
+                line = raw_line.strip()
+                if not line:
+                    continue
+                yield json.loads(line)
 
     def __enter__(self) -> ShopifyClient:
         return self

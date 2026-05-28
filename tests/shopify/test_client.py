@@ -107,3 +107,137 @@ def test_check_user_errors_raises_when_present():
     assert "too short" in str(exc.value)
     assert exc.value.mutation == "productUpdate"
     assert exc.value.errors[0]["message"] == "is too short"
+
+
+def test_bulk_query_polls_until_complete_then_yields_rows(httpx_mock, monkeypatch, cfg):
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
+    # Mutation kickoff
+    httpx_mock.add_response(
+        method="POST",
+        url="https://test-store.myshopify.com/admin/api/2025-10/graphql.json",
+        json={
+            "data": {
+                "bulkOperationRunQuery": {
+                    "bulkOperation": {"id": "gid://bulk/1", "status": "CREATED"},
+                    "userErrors": [],
+                }
+            }
+        },
+    )
+    # First poll: still running
+    httpx_mock.add_response(
+        method="POST",
+        url="https://test-store.myshopify.com/admin/api/2025-10/graphql.json",
+        json={
+            "data": {
+                "currentBulkOperation": {
+                    "status": "RUNNING",
+                    "url": None,
+                    "errorCode": None,
+                    "objectCount": 0,
+                    "id": "gid://bulk/1",
+                }
+            }
+        },
+    )
+    # Second poll: completed
+    httpx_mock.add_response(
+        method="POST",
+        url="https://test-store.myshopify.com/admin/api/2025-10/graphql.json",
+        json={
+            "data": {
+                "currentBulkOperation": {
+                    "status": "COMPLETED",
+                    "url": "https://results.example/bulk.jsonl",
+                    "errorCode": None,
+                    "objectCount": 2,
+                    "id": "gid://bulk/1",
+                }
+            }
+        },
+    )
+    # The download
+    httpx_mock.add_response(
+        method="GET",
+        url="https://results.example/bulk.jsonl",
+        content=b'{"id":"gid://Order/1"}\n{"id":"gid://Order/2"}\n',
+    )
+
+    client = ShopifyClient(config=cfg)
+    rows = list(
+        client.bulk_query(
+            "query { orders { edges { node { id } } } }",
+            poll_interval=0.0,
+            max_wait=10.0,
+        )
+    )
+    assert rows == [{"id": "gid://Order/1"}, {"id": "gid://Order/2"}]
+
+
+def test_bulk_query_raises_on_failed_status(httpx_mock, monkeypatch, cfg):
+    from shopify.utils.client import ShopifyBulkOperationError
+
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
+    httpx_mock.add_response(
+        method="POST",
+        url="https://test-store.myshopify.com/admin/api/2025-10/graphql.json",
+        json={
+            "data": {
+                "bulkOperationRunQuery": {
+                    "bulkOperation": {"id": "gid://bulk/1", "status": "CREATED"},
+                    "userErrors": [],
+                }
+            }
+        },
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://test-store.myshopify.com/admin/api/2025-10/graphql.json",
+        json={
+            "data": {
+                "currentBulkOperation": {
+                    "status": "FAILED",
+                    "url": None,
+                    "errorCode": "INTERNAL_SERVER_ERROR",
+                    "objectCount": 0,
+                    "id": "gid://bulk/1",
+                }
+            }
+        },
+    )
+    client = ShopifyClient(config=cfg)
+    with pytest.raises(ShopifyBulkOperationError):
+        list(client.bulk_query("query { x }", poll_interval=0.0, max_wait=10.0))
+
+
+def test_bulk_query_yields_nothing_when_url_is_empty(httpx_mock, monkeypatch, cfg):
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
+    httpx_mock.add_response(
+        method="POST",
+        url="https://test-store.myshopify.com/admin/api/2025-10/graphql.json",
+        json={
+            "data": {
+                "bulkOperationRunQuery": {
+                    "bulkOperation": {"id": "gid://bulk/1", "status": "CREATED"},
+                    "userErrors": [],
+                }
+            }
+        },
+    )
+    httpx_mock.add_response(
+        method="POST",
+        url="https://test-store.myshopify.com/admin/api/2025-10/graphql.json",
+        json={
+            "data": {
+                "currentBulkOperation": {
+                    "status": "COMPLETED",
+                    "url": None,
+                    "errorCode": None,
+                    "objectCount": 0,
+                    "id": "gid://bulk/1",
+                }
+            }
+        },
+    )
+    client = ShopifyClient(config=cfg)
+    assert list(client.bulk_query("query { x }", poll_interval=0.0, max_wait=10.0)) == []
