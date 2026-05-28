@@ -1,6 +1,6 @@
 {
   "name": "ecom-ai-toolkit",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Python ops scripts + skills for Shopify-centric ecommerce stacks",
   "author": {
     "name": "Andreas Ludvigsson"
