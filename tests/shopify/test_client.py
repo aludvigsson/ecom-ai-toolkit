@@ -57,6 +57,25 @@ def test_missing_token_raises(monkeypatch, cfg):
     assert "SHOPIFY_ADMIN_ACCESS_TOKEN" in str(exc.value)
 
 
+def test_graphql_partial_success_attaches_data_to_error(httpx_mock, monkeypatch, cfg):
+    """Shopify can return both `data` and `errors`; the partial data should be
+    recoverable via the exception's `.data` attribute."""
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_test")
+    httpx_mock.add_response(
+        method="POST",
+        url="https://test-store.myshopify.com/admin/api/2025-10/graphql.json",
+        json={
+            "data": {"products": {"edges": [{"node": {"id": "gid://Product/1"}}]}},
+            "errors": [{"message": "Some field failed"}],
+        },
+    )
+    client = ShopifyClient(config=cfg)
+    with pytest.raises(ShopifyGraphQLError) as exc:
+        client.graphql("query { products { edges { node { id } } } }")
+    assert exc.value.data is not None
+    assert exc.value.data["products"]["edges"][0]["node"]["id"] == "gid://Product/1"
+
+
 def test_shopify_client_supports_context_manager(httpx_mock, monkeypatch, cfg):
     monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_test")
     httpx_mock.add_response(

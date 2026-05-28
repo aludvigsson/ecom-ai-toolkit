@@ -13,7 +13,17 @@ _log = get_logger("ecom.shopify.client")
 
 
 class ShopifyGraphQLError(RuntimeError):
-    """GraphQL `errors` array was non-empty."""
+    """Raised when a GraphQL response has a non-empty top-level `errors` array.
+
+    Shopify can return both `data` and `errors` in the same response (partial
+    success on list queries, for example). Plan-1 deferred-concerns item #15:
+    callers that want to recover from partial failures can read `.data` after
+    catching this exception.
+    """
+
+    def __init__(self, message: str, *, data: dict | None = None) -> None:
+        super().__init__(message)
+        self.data = data
 
 
 class ShopifyClient:
@@ -46,7 +56,10 @@ class ShopifyClient:
         response = self._http.post(self._endpoint, json=payload)
         body = response.json()
         if body.get("errors"):
-            raise ShopifyGraphQLError("; ".join(e.get("message", str(e)) for e in body["errors"]))
+            raise ShopifyGraphQLError(
+                "; ".join(e.get("message", str(e)) for e in body["errors"]),
+                data=body.get("data"),
+            )
         return body.get("data", {})
 
     def __enter__(self) -> ShopifyClient:
