@@ -1,0 +1,13 @@
+{
+  "name": "ecom-ai-toolkit",
+  "version": "0.1.0",
+  "description": "Python ops scripts + skills for Shopify-centric ecommerce stacks",
+  "author": {
+    "name": "Andreas Ludvigsson"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "Shopify/Shopify-AI-Toolkit": "^1.0.0"
+  },
+  "skills": "./skills"
+}

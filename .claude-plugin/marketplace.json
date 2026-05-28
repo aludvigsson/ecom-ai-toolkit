@@ -1,0 +1,8 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/claude-code-marketplace/main/schemas/marketplace.json",
+  "name": "ecom-ai-toolkit",
+  "description": "Python ops scripts + skills for Shopify-centric ecommerce stacks",
+  "homepage": "https://github.com/aludvigsson/ecom-ai-toolkit",
+  "repository": "https://github.com/aludvigsson/ecom-ai-toolkit",
+  "license": "MIT"
+}
