@@ -50,3 +50,24 @@ def test_authorization_header_is_redacted_in_logs(httpx_mock, caplog):
         client.get("/a")
     log_text = "\n".join(r.message for r in caplog.records)
     assert "SECRET" not in log_text
+
+
+def test_redacting_filter_blanks_lines_containing_bearer_token(caplog):
+    from core.http import _log  # noqa: PLC2701 - intentional, testing redaction
+
+    with caplog.at_level(logging.INFO, logger="ecom.http"):
+        _log.info("Authorization: Bearer abc123xyz secret")
+    rendered = "\n".join(r.getMessage() for r in caplog.records)
+    assert "abc123xyz" not in rendered
+    assert "[redacted sensitive log line]" in rendered
+
+
+def test_redacting_filter_does_not_false_positive_on_cursor_tokens(caplog):
+    from core.http import _log  # noqa: PLC2701
+
+    cursor = "eyJsYXN0X2lkIjoxMjN9"  # gitleaks:allow - synthetic base64, not a secret
+    with caplog.at_level(logging.INFO, logger="ecom.http"):
+        _log.info("pagination cursor token=%s (not a secret)", cursor)
+    rendered = "\n".join(r.getMessage() for r in caplog.records)
+    # The legitimate cursor should remain visible (was false-positive-redacted before).
+    assert cursor in rendered

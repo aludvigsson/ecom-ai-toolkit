@@ -96,14 +96,26 @@ class HttpClient:
 
 
 class _RedactingFilter(logging.Filter):
-    """Ensures Authorization / token / api-key values never appear in log output."""
+    """Defense-in-depth: blanks log lines containing sensitive headers.
 
-    _SENSITIVE_KEYS = ("authorization", "token", "api-key", "x-api-key")
+    Plan-1 deferred-concerns item #2: substrings are narrowed (e.g.
+    'token=' not bare 'token') so legitimate log lines mentioning
+    things like pagination cursor tokens are not false-positive-redacted.
+    """
+
+    _SENSITIVE_SUBSTRINGS = (
+        "authorization:",
+        "authorization=",
+        "x-shopify-access-token",
+        "x-api-key",
+        "api-key=",
+        "bearer ",
+    )
 
     def filter(self, record: logging.LogRecord) -> bool:
         msg = record.getMessage().lower()
-        for k in self._SENSITIVE_KEYS:
-            if k in msg:
+        for needle in self._SENSITIVE_SUBSTRINGS:
+            if needle in msg:
                 record.msg = "[redacted sensitive log line]"
                 record.args = ()
                 return True
