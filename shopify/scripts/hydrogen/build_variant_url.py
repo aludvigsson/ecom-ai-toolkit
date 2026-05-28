@@ -18,6 +18,7 @@ if __package__ in (None, ""):
 
 import argparse
 import json
+import urllib.parse as _urlparse
 
 from core.config import load_config
 from core.logging import get_logger
@@ -77,14 +78,15 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         market = default
 
-    domain = cfg.store.primary_domain
+    domain = cfg.store.primary_domain.rstrip("/")
     prefix = market.url_prefix.rstrip("/")
     handle = args.handle
+    encoded_handle = _urlparse.quote(handle, safe="-_~")
 
     if args.variant_id:
-        url = f"https://{domain}{prefix}/products/{handle}?variant={args.variant_id}"
+        url = f"https://{domain}{prefix}/products/{encoded_handle}?variant={args.variant_id}"
     else:
-        url = f"https://{domain}{prefix}/products/{handle}?sku={args.variant_sku}"
+        url = f"https://{domain}{prefix}/products/{encoded_handle}?sku={args.variant_sku}"
 
     if args.output == "json":
         print(json.dumps({"url": url, "market": market.code, "handle": handle}, indent=2))

@@ -158,6 +158,59 @@ def test_build_variant_url_errors_on_online_store_2_storefront(capsys):
     assert "theme" in captured.err
 
 
+def test_build_variant_url_strips_trailing_slash_from_primary_domain(capsys):
+    cfg = _hydrogen_cfg()
+    cfg.store.primary_domain = "curaofsweden.com/"
+    with ExitStack() as stack:
+        mock_cfg = stack.enter_context(
+            patch("shopify.scripts.hydrogen.build_variant_url.load_config")
+        )
+        mock_cfg.return_value = cfg
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "build_variant_url.py",
+                "--handle",
+                "pearl-classic",
+                "--variant-id",
+                "12345",
+                "--market",
+                "se",
+            ],
+        ):
+            assert build_variant_url.main() == 0
+    out = capsys.readouterr().out.strip()
+    assert "//se" not in out
+    assert out == "https://curaofsweden.com/se/products/pearl-classic?variant=12345"
+
+
+def test_build_variant_url_url_encodes_non_ascii_handle(capsys):
+    with ExitStack() as stack:
+        mock_cfg = stack.enter_context(
+            patch("shopify.scripts.hydrogen.build_variant_url.load_config")
+        )
+        mock_cfg.return_value = _hydrogen_cfg()
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "build_variant_url.py",
+                "--handle",
+                "köpa-örngott",
+                "--variant-id",
+                "12345",
+                "--market",
+                "se",
+            ],
+        ):
+            assert build_variant_url.main() == 0
+    out = capsys.readouterr().out.strip()
+    # ö encodes to %C3%B6
+    assert "%C3%B6" in out
+    assert "köpa" not in out
+
+
 def test_build_variant_url_json_output(capsys):
     with ExitStack() as stack:
         mock_cfg = stack.enter_context(
