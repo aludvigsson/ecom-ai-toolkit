@@ -5,7 +5,7 @@ Two-step resolution:
 1. ``--sku`` → ``inventoryItem.id`` via ``productVariants(first: 2, query:"sku:'<escaped>'")``.
    Reuses the shared ``AmbiguousSkuError`` / ``SkuNotFoundError`` guards.
 2. ``--location-id`` OR ``--location-name`` (mutually exclusive). When resolving
-   by name, a case-sensitive exact match is required; 0 matches raises
+   by name, a case-insensitive exact match is required; 0 matches raises
    ``LocationNotFoundError``, >1 raises ``AmbiguousLocationError``.
 
 Then calls ``inventorySetOnHandQuantities``. Honors ``--dry-run`` by printing
@@ -89,7 +89,8 @@ def _resolve_inventory_item(client: ShopifyClient, sku: str) -> str:
 def _resolve_location_by_name(client: ShopifyClient, name: str) -> str:
     data = client.graphql(_LOCATIONS_QUERY)
     edges = (data.get("locations") or {}).get("edges") or []
-    matches = [e["node"] for e in edges if e["node"].get("name") == name]
+    target = name.lower()
+    matches = [e["node"] for e in edges if (e["node"].get("name") or "").lower() == target]
     if not matches:
         raise LocationNotFoundError(name)
     if len(matches) > 1:
@@ -108,7 +109,7 @@ def main(argv: list[str] | None = None) -> int:
     loc.add_argument(
         "--location-name",
         dest="location_name",
-        help="Location name (case-sensitive exact match)",
+        help="Location name (case-insensitive exact match)",
     )
     parser.add_argument("--quantity", required=True, type=int, help="On-hand quantity to set")
     parser.add_argument(

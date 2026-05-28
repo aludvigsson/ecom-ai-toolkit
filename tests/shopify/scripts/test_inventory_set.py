@@ -237,3 +237,45 @@ def test_set_ambiguous_location_name_raises(monkeypatch):
         ):
             setcmd.main()
         assert exc_info.value.name == "Main"
+
+
+def test_set_location_name_match_is_case_insensitive(monkeypatch):
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
+    with ExitStack() as stack:
+        _, _, client = _setup_mocks(stack)
+        client.graphql.side_effect = [
+            _sku_lookup_response(
+                "gid://shopify/ProductVariant/1",
+                "gid://shopify/InventoryItem/100",
+            ),
+            {
+                "locations": {
+                    "edges": [
+                        {
+                            "node": {
+                                "id": "gid://shopify/Location/77",
+                                "name": "Stockholm Warehouse",
+                            }
+                        }
+                    ]
+                }
+            },
+            _ok_mutation_response(),
+        ]
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "set.py",
+                "--sku",
+                "ABC",
+                "--location-name",
+                "stockholm warehouse",
+                "--quantity",
+                "12",
+            ],
+        ):
+            assert setcmd.main() == 0
+        mut_args = client.graphql.call_args_list[2][0]
+        mut_input = mut_args[1]["input"]
+        assert mut_input["setQuantities"][0]["locationId"] == "gid://shopify/Location/77"
