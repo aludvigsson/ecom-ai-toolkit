@@ -207,6 +207,11 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     configure_logging_from_args(args)
 
+    # Partial customerGets updates need both items + value. Shopify rejects a
+    # bare value change with no items selector, so require --applies-to.
+    if args.value is not None and args.applies_to is None:
+        parser.error("--applies-to is required when changing --value on Basic/Bxgy discounts")
+
     cfg = load_config(args.config)
 
     with ShopifyClient(config=cfg) as client:

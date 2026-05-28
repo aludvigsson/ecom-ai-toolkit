@@ -94,6 +94,26 @@ def test_update_dry_run_runs_detect_but_skips_update(monkeypatch, capsys):
         assert client.graphql.call_count == 1
 
 
+def test_update_value_without_applies_to_errors(monkeypatch):
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
+    # parser.error -> SystemExit before any network call.
+    with (
+        patch.object(
+            sys,
+            "argv",
+            [
+                "update.py",
+                "--id",
+                "gid://shopify/DiscountCodeNode/1",
+                "--value",
+                "25",
+            ],
+        ),
+        pytest.raises(SystemExit),
+    ):
+        updatecmd.main()
+
+
 def test_update_userErrors_raises(monkeypatch):
     monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
     with ExitStack() as stack:
