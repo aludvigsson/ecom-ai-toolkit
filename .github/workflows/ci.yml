@@ -17,10 +17,10 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
       - name: Sync deps
-        run: uv sync --extra dev --extra shopify
+        run: uv sync --extra dev --extra shopify --extra webhooks
       - name: Ruff check
         run: uv run ruff check .
       - name: Ruff format check
         run: uv run ruff format --check .
-      - name: Run core + shopify unit tests
-        run: uv run pytest tests/core tests/shopify --ignore=tests/shopify/test_whoami_integration.py
+      - name: Run unit tests
+        run: uv run pytest tests/ --ignore=tests/shopify/test_whoami_integration.py
