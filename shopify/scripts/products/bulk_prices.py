@@ -33,8 +33,8 @@ _check_user_errors = ShopifyClient.check_user_errors
 _CHUNK_SIZE = 250
 
 _LOOKUP_QUERY = """
-query VariantBySku($q: String!) {
-  productVariants(first: 1, query: $q) {
+query VariantLookup($q: String!) {
+  productVariants(first: 2, query: $q) {
     edges { node { id product { id } } }
   }
 }
@@ -47,6 +47,27 @@ query VariantById($q: String!) {
   }
 }
 """
+
+
+class AmbiguousSkuError(RuntimeError):
+    """Raised when a SKU lookup returns more than one variant."""
+
+    def __init__(self, sku: str, variant_ids: list[str]) -> None:
+        self.sku = sku
+        self.variant_ids = variant_ids
+        super().__init__(
+            f"SKU {sku!r} matched {len(variant_ids)} variants: {', '.join(variant_ids)}. "
+            f"Refusing to guess — use --csv with explicit variant_id column instead."
+        )
+
+
+class SkuNotFoundError(RuntimeError):
+    """Raised when a SKU lookup returns zero variants."""
+
+    def __init__(self, sku: str) -> None:
+        self.sku = sku
+        super().__init__(f"SKU {sku!r} not found")
+
 
 _BULK_MUTATION = """
 mutation Bulk($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
@@ -116,7 +137,9 @@ def _resolve_variant(
         data = client.graphql(_LOOKUP_QUERY, {"q": f"sku:'{escape_search_value(sku)}'"})
         edges = data.get("productVariants", {}).get("edges", [])
         if not edges:
-            return None
+            raise SkuNotFoundError(sku)
+        if len(edges) > 1:
+            raise AmbiguousSkuError(sku, [e["node"]["id"] for e in edges])
         node = edges[0]["node"]
         vid = node["id"]
         product_id = node["product"]["id"]

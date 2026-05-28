@@ -4,6 +4,8 @@ from contextlib import ExitStack
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from shopify.scripts.products import bulk_prices as bp
 
 
@@ -282,3 +284,58 @@ def test_bulk_prices_chunks_at_250(monkeypatch, tmp_path):
         second = client.graphql.call_args_list[1][0][1]
         assert len(first["variants"]) == 250
         assert len(second["variants"]) == 10
+
+
+def test_bulk_prices_raises_on_ambiguous_sku(monkeypatch, tmp_path):
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
+    monkeypatch.chdir(tmp_path)
+    csv_path = tmp_path / "prices.csv"
+    _write_csv(csv_path, [{"sku": "DUP", "price": "10.00"}])
+    with ExitStack() as stack:
+        _, _, client = _setup_mocks(stack)
+        client.graphql.side_effect = [
+            {
+                "productVariants": {
+                    "edges": [
+                        {
+                            "node": {
+                                "id": "gid://shopify/ProductVariant/1",
+                                "product": {"id": "gid://shopify/Product/100"},
+                            }
+                        },
+                        {
+                            "node": {
+                                "id": "gid://shopify/ProductVariant/2",
+                                "product": {"id": "gid://shopify/Product/200"},
+                            }
+                        },
+                    ]
+                }
+            },
+        ]
+        with (
+            patch.object(sys, "argv", ["bulk_prices.py", "--from-csv", str(csv_path)]),
+            pytest.raises(bp.AmbiguousSkuError) as exc_info,
+        ):
+            bp.main()
+        assert exc_info.value.sku == "DUP"
+        assert "gid://shopify/ProductVariant/1" in exc_info.value.variant_ids
+        assert "gid://shopify/ProductVariant/2" in exc_info.value.variant_ids
+
+
+def test_bulk_prices_raises_on_missing_sku(monkeypatch, tmp_path):
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
+    monkeypatch.chdir(tmp_path)
+    csv_path = tmp_path / "prices.csv"
+    _write_csv(csv_path, [{"sku": "MISSING", "price": "10.00"}])
+    with ExitStack() as stack:
+        _, _, client = _setup_mocks(stack)
+        client.graphql.side_effect = [
+            {"productVariants": {"edges": []}},
+        ]
+        with (
+            patch.object(sys, "argv", ["bulk_prices.py", "--from-csv", str(csv_path)]),
+            pytest.raises(bp.SkuNotFoundError) as exc_info,
+        ):
+            bp.main()
+        assert exc_info.value.sku == "MISSING"
