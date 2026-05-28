@@ -163,3 +163,92 @@ def test_create_userErrors_raises(monkeypatch):
             pytest.raises(ShopifyUserError),
         ):
             createcmd.main()
+
+
+def test_create_rejects_value_on_free_shipping(monkeypatch):
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
+    with (
+        patch.object(
+            sys,
+            "argv",
+            [
+                "create.py",
+                "--kind",
+                "free-shipping",
+                "--value",
+                "10",
+                "--title",
+                "X",
+            ],
+        ),
+        pytest.raises(SystemExit),
+    ):
+        createcmd.main()
+
+
+def test_create_rejects_usage_limit_on_automatic(monkeypatch):
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
+    with (
+        patch.object(
+            sys,
+            "argv",
+            [
+                "create.py",
+                "--kind",
+                "percentage",
+                "--value",
+                "20",
+                "--usage-limit",
+                "100",
+                "--title",
+                "X",
+            ],
+        ),
+        pytest.raises(SystemExit),
+    ):
+        createcmd.main()
+
+
+def test_create_rejects_percentage_value_over_100(monkeypatch):
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
+    with (
+        patch.object(
+            sys,
+            "argv",
+            [
+                "create.py",
+                "--kind",
+                "percentage",
+                "--value",
+                "150",
+                "--code",
+                "SALE",
+                "--title",
+                "X",
+            ],
+        ),
+        pytest.raises(SystemExit),
+    ):
+        createcmd.main()
+
+
+def test_create_rejects_applies_once_per_customer_on_automatic(monkeypatch):
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
+    with (
+        patch.object(
+            sys,
+            "argv",
+            [
+                "create.py",
+                "--kind",
+                "percentage",
+                "--value",
+                "20",
+                "--applies-once-per-customer",
+                "--title",
+                "X",
+            ],
+        ),
+        pytest.raises(SystemExit),
+    ):
+        createcmd.main()

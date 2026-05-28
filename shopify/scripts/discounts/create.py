@@ -269,6 +269,24 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     configure_logging_from_args(args)
 
+    # Validate flag combinations at parse time so users get a clear error
+    # instead of a silently-dropped flag or a Shopify userError later.
+    if args.kind == "free-shipping" and args.value is not None:
+        parser.error("--value is not applicable for --kind free-shipping")
+    if args.code is None and args.usage_limit is not None:
+        parser.error("--usage-limit applies only to code discounts (requires --code)")
+    if args.code is None and args.applies_once_per_customer:
+        parser.error("--applies-once-per-customer applies only to code discounts (requires --code)")
+    if args.kind in ("percentage", "fixed") and args.value is None:
+        parser.error(f"--value is required for --kind {args.kind}")
+    if args.kind == "percentage" and args.value is not None:
+        try:
+            pct = float(args.value)
+        except ValueError:
+            parser.error("--value must be numeric for --kind percentage")
+        if not 0 <= pct <= 100:
+            parser.error("--value for --kind percentage must be between 0 and 100")
+
     cfg = load_config(args.config)
     mutation_name, mutation_text, variable_key, inp = _route(args)
     is_code = args.code is not None
