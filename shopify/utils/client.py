@@ -26,6 +26,25 @@ class ShopifyGraphQLError(RuntimeError):
         self.data = data
 
 
+class ShopifyUserError(RuntimeError):
+    """Raised when a Shopify mutation returns a non-empty `userErrors` array.
+
+    Plan-1 deferred-concerns item #16. Distinct from top-level GraphQL `errors`:
+    `userErrors` is a per-mutation array with `field` and `message`. The helper
+    `ShopifyClient.check_user_errors(payload, *, mutation)` walks the standard
+    `data[mutation].userErrors` path and raises if non-empty.
+    """
+
+    def __init__(self, mutation: str, errors: list[dict]) -> None:
+        self.mutation = mutation
+        self.errors = errors
+        summary = "; ".join(
+            f"{', '.join(e.get('field') or [])}: {e.get('message', '?')}".strip(": ")
+            for e in errors
+        )
+        super().__init__(f"{mutation} userErrors: {summary}")
+
+
 class ShopifyClient:
     """Admin GraphQL client.
 
@@ -61,6 +80,18 @@ class ShopifyClient:
                 data=body.get("data"),
             )
         return body.get("data", {})
+
+    @staticmethod
+    def check_user_errors(data: dict, *, mutation: str) -> None:
+        """Raise ShopifyUserError if `data[mutation].userErrors` is non-empty.
+
+        Standard shape across most Shopify mutations:
+            data.{mutation}.userErrors: [{field: [str], message: str, ...}]
+        """
+        node = data.get(mutation) or {}
+        errs = node.get("userErrors") or []
+        if errs:
+            raise ShopifyUserError(mutation, errs)
 
     def __enter__(self) -> ShopifyClient:
         return self

@@ -86,3 +86,24 @@ def test_shopify_client_supports_context_manager(httpx_mock, monkeypatch, cfg):
     with ShopifyClient(config=cfg) as client:
         result = client.graphql("query { shop { name } }")
     assert result["shop"]["name"] == "Test"
+
+
+def test_check_user_errors_passes_when_empty():
+    ShopifyClient.check_user_errors(
+        {"productUpdate": {"product": {"id": "x"}, "userErrors": []}},
+        mutation="productUpdate",
+    )
+
+
+def test_check_user_errors_raises_when_present():
+    from shopify.utils.client import ShopifyUserError
+
+    with pytest.raises(ShopifyUserError) as exc:
+        ShopifyClient.check_user_errors(
+            {"productUpdate": {"userErrors": [{"field": ["title"], "message": "is too short"}]}},
+            mutation="productUpdate",
+        )
+    assert "title" in str(exc.value)
+    assert "too short" in str(exc.value)
+    assert exc.value.mutation == "productUpdate"
+    assert exc.value.errors[0]["message"] == "is too short"
