@@ -67,14 +67,23 @@ class HttpClient:
             time.sleep(delay)
             attempt += 1
 
+    def delete(self, url: str, **kwargs: Any) -> httpx.Response:
+        return self.request("DELETE", url, **kwargs)
+
     def get(self, url: str, **kwargs: Any) -> httpx.Response:
         return self.request("GET", url, **kwargs)
+
+    def head(self, url: str, **kwargs: Any) -> httpx.Response:
+        return self.request("HEAD", url, **kwargs)
+
+    def patch(self, url: str, **kwargs: Any) -> httpx.Response:
+        return self.request("PATCH", url, **kwargs)
 
     def post(self, url: str, **kwargs: Any) -> httpx.Response:
         return self.request("POST", url, **kwargs)
 
-    def head(self, url: str, **kwargs: Any) -> httpx.Response:
-        return self.request("HEAD", url, **kwargs)
+    def put(self, url: str, **kwargs: Any) -> httpx.Response:
+        return self.request("PUT", url, **kwargs)
 
     def _compute_delay(self, response: httpx.Response, attempt: int) -> float:
         retry_after = response.headers.get("Retry-After")

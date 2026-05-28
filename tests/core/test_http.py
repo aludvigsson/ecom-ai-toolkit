@@ -41,6 +41,29 @@ def test_gives_up_after_max_retries(httpx_mock):
         client.get("/z")
 
 
+def test_put_succeeds_on_200(httpx_mock):
+    httpx_mock.add_response(method="PUT", url="https://example.test/p", json={"ok": True})
+    client = HttpClient(base_url="https://example.test")
+    r = client.put("/p")
+    assert r.status_code == 200
+    assert r.json() == {"ok": True}
+
+
+def test_patch_succeeds_on_200(httpx_mock):
+    httpx_mock.add_response(method="PATCH", url="https://example.test/p", json={"ok": True})
+    client = HttpClient(base_url="https://example.test")
+    r = client.patch("/p")
+    assert r.status_code == 200
+    assert r.json() == {"ok": True}
+
+
+def test_delete_succeeds_on_204(httpx_mock):
+    httpx_mock.add_response(method="DELETE", url="https://example.test/d", status_code=204)
+    client = HttpClient(base_url="https://example.test")
+    r = client.delete("/d")
+    assert r.status_code == 204
+
+
 def test_authorization_header_is_redacted_in_logs(httpx_mock, caplog):
     httpx_mock.add_response(method="GET", url="https://example.test/a", json={"ok": True})
     client = HttpClient(
