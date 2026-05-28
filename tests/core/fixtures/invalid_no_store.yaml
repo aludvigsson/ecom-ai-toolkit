@@ -1,0 +1,6 @@
+markets:
+  - code: us
+    name: USA
+    locale: en-US
+    currency: USD
+    url_prefix: ""

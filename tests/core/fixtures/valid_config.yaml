@@ -1,0 +1,25 @@
+store:
+  name: "Test Store"
+  primary_domain: test.example
+  shopify_domain: test-store.myshopify.com
+  storefront_type: online_store_2
+  default_locale: en-US
+markets:
+  - code: us
+    name: USA
+    locale: en-US
+    currency: USD
+    url_prefix: ""
+  - code: se
+    name: Sverige
+    locale: sv-SE
+    currency: SEK
+    url_prefix: "/se"
+domains:
+  shopify:        { enabled: true, api_version: "2025-10" }
+  klaviyo:        { enabled: false }
+  meta_ads:       { enabled: false }
+  google_ads:     { enabled: false }
+  microsoft_ads:  { enabled: false }
+  merchant_center: { enabled: false }
+  gtm:            { enabled: false }
