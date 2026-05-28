@@ -11,9 +11,9 @@ def _hydrogen_cfg() -> StoreConfig:
     return StoreConfig.model_validate(
         {
             "store": {
-                "name": "Cura of Sweden",
-                "primary_domain": "curaofsweden.com",
-                "shopify_domain": "cura-of-sweden.myshopify.com",
+                "name": "Example Store",
+                "primary_domain": "example.com",
+                "shopify_domain": "example-store.myshopify.com",
                 "storefront_type": "hydrogen",
                 "default_locale": "sv-SE",
             },
@@ -83,7 +83,7 @@ def test_build_variant_url_by_id_for_se_market(capsys):
         ):
             assert build_variant_url.main() == 0
     out = capsys.readouterr().out.strip()
-    assert out == "https://curaofsweden.com/se/products/pearl-classic?variant=12345"
+    assert out == "https://example.com/se/products/pearl-classic?variant=12345"
 
 
 def test_build_variant_url_by_sku_uses_sku_query_param(capsys):
@@ -130,7 +130,7 @@ def test_build_variant_url_default_market_falls_back_to_locale(capsys):
         ):
             assert build_variant_url.main() == 0
     out = capsys.readouterr().out.strip()
-    assert out == "https://curaofsweden.com/se/products/pearl-classic?variant=999"
+    assert out == "https://example.com/se/products/pearl-classic?variant=999"
 
 
 def test_build_variant_url_errors_on_online_store_2_storefront(capsys):
@@ -160,7 +160,7 @@ def test_build_variant_url_errors_on_online_store_2_storefront(capsys):
 
 def test_build_variant_url_strips_trailing_slash_from_primary_domain(capsys):
     cfg = _hydrogen_cfg()
-    cfg.store.primary_domain = "curaofsweden.com/"
+    cfg.store.primary_domain = "example.com/"
     with ExitStack() as stack:
         mock_cfg = stack.enter_context(
             patch("shopify.scripts.hydrogen.build_variant_url.load_config")
@@ -182,7 +182,7 @@ def test_build_variant_url_strips_trailing_slash_from_primary_domain(capsys):
             assert build_variant_url.main() == 0
     out = capsys.readouterr().out.strip()
     assert "//se" not in out
-    assert out == "https://curaofsweden.com/se/products/pearl-classic?variant=12345"
+    assert out == "https://example.com/se/products/pearl-classic?variant=12345"
 
 
 def test_build_variant_url_url_encodes_non_ascii_handle(capsys):
@@ -236,4 +236,4 @@ def test_build_variant_url_json_output(capsys):
     parsed = json.loads(capsys.readouterr().out)
     assert parsed["market"] == "se"
     assert parsed["handle"] == "pearl-classic"
-    assert parsed["url"] == "https://curaofsweden.com/se/products/pearl-classic?variant=12345"
+    assert parsed["url"] == "https://example.com/se/products/pearl-classic?variant=12345"

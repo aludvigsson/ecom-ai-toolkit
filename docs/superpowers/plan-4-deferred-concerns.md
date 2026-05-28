@@ -28,7 +28,7 @@ Prefer (a) for the immediate fix; (b) for the long-term API hygiene.
 ### S-1. `build_variant_url.py` doesn't normalize trailing slash on `primary_domain`
 **Where:** `shopify/scripts/hydrogen/build_variant_url.py` URL composition.
 
-**Why:** If `store.primary_domain` is `"curaofsweden.com/"` (user typo in YAML), output becomes `https://curaofsweden.com//se/products/...`.
+**Why:** If `store.primary_domain` is `"example.com/"` (user typo in YAML), output becomes `https://example.com//se/products/...`.
 
 **Fix:** `domain = cfg.store.primary_domain.rstrip("/")` in the URL builder. Also worth `urllib.parse.quote(handle, safe="")` to guard handles with non-ASCII chars.
 

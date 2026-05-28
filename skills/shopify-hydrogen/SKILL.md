@@ -73,7 +73,7 @@ uv run shopify/scripts/hydrogen/build_variant_url.py \
 
 ```bash
 uv run shopify/scripts/hydrogen/validate_url.py \
-  --url 'https://curaofsweden.com/se/products/pearl-classic?variant=12345'
+  --url 'https://example.com/se/products/pearl-classic?variant=12345'
 ```
 
 ### 6. Bulk validate from CSV
@@ -99,7 +99,7 @@ uv run shopify/scripts/hydrogen/build_variant_url.py \
 - **`market.url_prefix` MUST start with `/`** (e.g. `/se`, `/de`). An empty string `""` means the market is the root (no prefix) — valid for single-market setups.
 - **`validate_url.py` follows redirects by default.** If a 301 → final 200 chain is unexpected, the `final_url` column shows where Hydrogen actually routed the request. Useful for catching unintended locale redirects (e.g. `/products/foo` 301-ing to `/se/products/foo`). Pass `--no-follow-redirects` for strict mode: 3xx surfaces as the URL's actual status (catches parked-domain or expired-SSL redirects masquerading as healthy).
 - **A 200 does not mean the variant exists.** Hydrogen typically renders the product page with `?variant=99999999` and just falls back to the default variant. `validate_url.py` only proves the URL resolves, not that the variant is valid. For true existence checks query the Admin API.
-- **Multi-domain stores aren't handled.** `build_variant_url.py` only knows about `store.primary_domain`. If your Hydrogen storefront serves multiple TLDs (e.g. `curaofsweden.com` and `cura.de`), wrap the script or extend `store-config.yaml` with per-market domains in a follow-up plan.
+- **Multi-domain stores aren't handled.** `build_variant_url.py` only knows about `store.primary_domain`. If your Hydrogen storefront serves multiple TLDs (e.g. `example.com` and `example.de`), wrap the script or extend `store-config.yaml` with per-market domains in a follow-up plan.
 - **Silent third-party redirects pass as `ok: True`.** If a URL silently redirects to a parked domain or wrong host, `validate_url.py` reports it as healthy but the `final_url` column shows the unexpected host. Always inspect `final_url`, not just `status`.
 
 ## Reference

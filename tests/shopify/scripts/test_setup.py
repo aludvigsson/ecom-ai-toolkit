@@ -185,20 +185,20 @@ def test_setup_invalid_token_format_rejected(
 def test_read_cli_token_for_store_handles_store_with_myshopify_suffix(
     tmp_path: Path,
 ) -> None:
-    """`cura-of-sweden.myshopify.com` should resolve to handle `cura-of-sweden` in CLI config."""
+    """`example-store.myshopify.com` should resolve to handle `example-store` in CLI config."""
     cli_config = tmp_path / "config.json"
     cli_config.write_text(
         json.dumps(
             {
-                "7e9cb568abcd1234::cura-of-sweden": {
+                "7e9cb568abcd1234::example-store": {
                     "myshopify.com": {
                         "currentUserId": "user-1",
                         "sessionsByUserId": {
                             "user-1": {
-                                "accessToken": "shpat_curatoken",
+                                "accessToken": "shpat_examplefixturetoken",
                                 "expiresAt": "2026-05-29T12:00:00Z",
                                 "scopes": ["read_products"],
-                                "userEmail": "andreas@1up.se",
+                                "userEmail": "user@example.com",
                             }
                         },
                     }
@@ -208,14 +208,14 @@ def test_read_cli_token_for_store_handles_store_with_myshopify_suffix(
         encoding="utf-8",
     )
     result = setup_mod._read_cli_token_for_store(
-        "cura-of-sweden.myshopify.com", config_path=cli_config
+        "example-store.myshopify.com", config_path=cli_config
     )
     assert result is not None
     token, metadata = result
-    assert token == "shpat_curatoken"
+    assert token == "shpat_examplefixturetoken"
     assert metadata["expires_at"] == "2026-05-29T12:00:00Z"
     assert metadata["scopes"] == ["read_products"]
-    assert metadata["user_email"] == "andreas@1up.se"
+    assert metadata["user_email"] == "user@example.com"
 
 
 def test_read_cli_token_for_store_returns_none_when_store_missing(
@@ -225,7 +225,7 @@ def test_read_cli_token_for_store_returns_none_when_store_missing(
     cli_config = tmp_path / "config.json"
     cli_config.write_text(json.dumps({"abc::other-shop": {}}), encoding="utf-8")
     assert (
-        setup_mod._read_cli_token_for_store("cura-of-sweden.myshopify.com", config_path=cli_config)
+        setup_mod._read_cli_token_for_store("example-store.myshopify.com", config_path=cli_config)
         is None
     )
 
