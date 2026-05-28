@@ -95,6 +95,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     configure_logging_from_args(args)
 
+    if args.dry_run and args.yes:
+        print("note: --dry-run takes precedence over --yes", file=sys.stderr)
+
     new_content = _resolve_new_content(args)
 
     cfg = load_config(args.config)

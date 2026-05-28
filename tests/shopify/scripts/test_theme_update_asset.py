@@ -80,6 +80,33 @@ def test_update_asset_dry_run_prints_diff_and_skips_mutation(monkeypatch, capsys
     assert "+new content" in err
 
 
+def test_update_asset_dry_run_plus_yes_emits_precedence_notice(monkeypatch, capsys):
+    monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
+    with ExitStack() as stack:
+        _, _, client = _setup_mocks(stack)
+        client.graphql.return_value = _fetch_response("old content")
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "update_asset.py",
+                "--theme-id",
+                "gid://shopify/OnlineStoreTheme/1",
+                "--filename",
+                "sections/header.liquid",
+                "--content",
+                "new content",
+                "--dry-run",
+                "--yes",
+            ],
+        ):
+            assert updatecmd.main() == 0
+        # Only the fetch query — no upsert (dry-run wins).
+        assert client.graphql.call_count == 1
+    err = capsys.readouterr().err
+    assert "--dry-run takes precedence over --yes" in err
+
+
 def test_update_asset_without_yes_errors(monkeypatch, capsys):
     monkeypatch.setenv("SHOPIFY_ADMIN_ACCESS_TOKEN", "shpat_x")
     with ExitStack() as stack:
