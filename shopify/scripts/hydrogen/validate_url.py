@@ -81,7 +81,8 @@ def main(argv: list[str] | None = None) -> int:
 
     results: list[dict] = []
     any_failed = False
-    with HttpClient(timeout=15.0) as http:
+    # validators check current state; retries hide problems
+    with HttpClient(timeout=15.0, max_retries=0) as http:
         for url in urls:
             row = _check_one(http, url)
             results.append(row)
