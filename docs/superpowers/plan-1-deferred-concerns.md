@@ -4,7 +4,7 @@ Findings from per-batch reviews and the final whole-plan review that were deferr
 
 ## Important (land before v0.1.0 final)
 
-### 1. `core/secrets.py` — `_env_loaded` test-flake risk
+### 1. **[RESOLVED in v0.1.1]** `core/secrets.py` — `_env_loaded` test-flake risk
 **Where:** `core/secrets.py:13` (module-level `_env_loaded` flag).
 **Why:** Flag conflates "we auto-tried" with "don't try again." Any future test that writes a `.env.local` to a `tmp_path` and relies on `get_secret()` auto-loading it will silently no-op if any prior test already triggered the auto-load.
 **Fix options:**
@@ -12,7 +12,7 @@ Findings from per-batch reviews and the final whole-plan review that were deferr
 - Change `_ensure_loaded` to recheck on cwd change, OR
 - Have `load_env_local(explicit_path)` always parse the explicit path; only gate the lazy auto-load path.
 
-### 2. `core/http.py` — `_RedactingFilter` is defense-in-depth only
+### 2. **[RESOLVED in v0.1.1]** `core/http.py` — `_RedactingFilter` is defense-in-depth only
 **Where:** `core/http.py:_RedactingFilter`.
 **Why:** The current `_log_request` only logs `method`, `host+path`, `status`, `elapsed` — no headers, no body. The filter is effectively dormant on the paths we control. If a future domain author logs `_log.info("payload=%s", body)` containing a token *value*, nothing redacts it. The existing test asserts absence of "SECRET", not a positive redaction.
 **Fix:** Either (a) document the filter as defense-in-depth only and tell domain authors "never log bodies" + add a positive redaction unit test, or (b) extend the filter to scan known secret values registered at startup. Prefer (a) + the positive test.
@@ -25,7 +25,7 @@ Findings from per-batch reviews and the final whole-plan review that were deferr
 **Why:** O(n) linear scan; fine for 6 markets, but bulk scripts in Plans 2–3 will call this in tight loops.
 **Fix:** Build `_market_index: dict[str, Market]` via `@functools.cached_property`, then `O(1)` lookup.
 
-### 4. `shopify/utils/client.py` — add context-manager protocol to `ShopifyClient`
+### 4. **[RESOLVED in v0.1.1]** `shopify/utils/client.py` — add context-manager protocol to `ShopifyClient`
 **Where:** `shopify/utils/client.py:ShopifyClient`.
 **Why:** `HttpClient` already implements `__enter__`/`__exit__`. Adding the same on `ShopifyClient` removes the `try/finally client.close()` boilerplate from every future script (`with ShopifyClient(cfg) as c:`). Standardizing now prevents Plans 2–5 from each re-inventing the try/finally.
 **Fix:** 4 lines.
@@ -82,13 +82,13 @@ Findings from per-batch reviews and the final whole-plan review that were deferr
 
 ## Architectural notes (for Plans 2–5 awareness, not fixes)
 
-### 15. `ShopifyClient.graphql` raises on `errors` even when `data` is present (partial-success)
+### 15. **[RESOLVED in v0.1.1]** `ShopifyClient.graphql` raises on `errors` even when `data` is present (partial-success)
 Shopify can return both `data` and `errors`. Current implementation discards `data` in that case. Worth deciding the policy before the first paginated read script in Plan 2:
 - Option A: Attach `data` to the exception (`ShopifyGraphQLError(msg, data=body.get("data"))`).
 - Option B: Only raise when `data` is missing; otherwise log a warning and return `data`.
 Prefer A.
 
-### 16. `userErrors` (mutation-level) not handled
+### 16. **[RESOLVED in v0.1.1]** `userErrors` (mutation-level) not handled
 Distinct from top-level `errors`. Shopify mutations return `data.<mutation>.userErrors: [{field, message}]` on validation failure with HTTP 200 and no top-level `errors`. First Plan 2 mutation will hit this. Decide a helper shape now so each script doesn't re-invent.
 
 ### 17. `core/logging.py` is not thread-safe on first call
