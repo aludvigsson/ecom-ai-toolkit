@@ -2,6 +2,17 @@
 
 All notable changes documented here. Format follows [keep-a-changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.4.1] — 2026-05-28
+
+### Added
+- `HttpClient` gains `.put()`, `.patch()`, `.delete()` methods to mirror `.get/.post/.head` (Plan-4 S-3). Avoids re-invention in Plan 5 webhook scripts that target third-party platforms.
+- `hydrogen/validate_url.py` gains `--no-follow-redirects` flag for strict mode (Plan-4 I-2).
+
+### Fixed
+- `hydrogen/validate_url.py` no longer retries on 5xx (Plan-4 I-1). Validators check current state; retries hide problems.
+- `hydrogen/build_variant_url.py` strips trailing slashes from `store.primary_domain` and percent-encodes the product handle so non-ASCII handles produce RFC 3986-compliant URLs (Plan-4 S-1).
+- `theme/update_asset.py` prints a stderr notice when both `--dry-run` and `--yes` are passed (Plan-4 S-2). `--dry-run` still wins; just no longer silent.
+
 ## [0.4.0] — 2026-05-28
 
 ### Added
