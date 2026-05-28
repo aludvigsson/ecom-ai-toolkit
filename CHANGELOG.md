@@ -2,6 +2,24 @@
 
 All notable changes documented here. Format follows [keep-a-changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.0] — 2026-05-28
+
+### Added
+- **Bulk Operations API:** `ShopifyClient.bulk_query()` runs `bulkOperationRunQuery`, polls `currentBulkOperation` until complete, then yields parsed JSONL rows. `ShopifyBulkOperationError` raised on FAILED/CANCELED/timeout.
+- **Orders domain:** `shopify/scripts/orders/{list,report}.py` — date/status/customer-filtered queries plus markdown GMV/refunds/top-SKUs summaries via `bulk_query` for unbounded ranges. Skill: `shopify-orders`.
+- **Customers domain:** `shopify/scripts/customers/list.py` — email/tag/state/min-orders filtered reads with `numberOfOrders` post-filter. Skill: `shopify-customers` (read-only in v0.3).
+- **Inventory domain:** `shopify/scripts/inventory/{levels,set}.py` — per-SKU inventory across locations and on-hand quantity adjustment via `inventorySetOnHandQuantities`. Two-step resolution (SKU→inventoryItem, name→locationId). Skill: `shopify-inventory`.
+- **Discounts domain:** `shopify/scripts/discounts/{list,create,update,delete}.py` — covers both code and automatic discount catalogs across four kinds (percentage, fixed, bxgy, free-shipping). `update.py` and `delete.py` auto-detect the kind via the dual `codeDiscountNode`/`automaticDiscountNode` lookup. Skill: `shopify-discounts`.
+
+### Changed
+- `AmbiguousSkuError` and `SkuNotFoundError` promoted from `products/bulk_prices.py` to `shopify.utils.client` so other domains (inventory, discounts) can reuse them. `SkuNotFoundError` now subclasses `LookupError` per stdlib "not found" convention; `AmbiguousSkuError` remains on `RuntimeError`.
+
+### Conventions
+- All read scripts honor `--limit` (default 50); some support `--from`/`--to` ISO date ranges; all support `--output {table,json,markdown}` via the shared `format_output` helper.
+- All mutation scripts honor `--dry-run` (skips graphql, prints would-be input) and surface mutation-level userErrors via the free function `shopify.utils.client.check_user_errors(data, mutation=...)`.
+- Destructive mutations (`metaobjects/delete.py`, `discounts/delete.py`) require an explicit `--yes` flag; `--dry-run` does not require it.
+- Detect-then-dispatch pattern: `discounts/{update,delete}.py` query both `codeDiscountNode` and `automaticDiscountNode` to determine the discount kind before dispatching to the matching mutation.
+
 ## [0.2.0] — 2026-05-28
 
 ### Added
