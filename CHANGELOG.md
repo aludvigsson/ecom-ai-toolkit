@@ -2,6 +2,18 @@
 
 All notable changes documented here. Format follows [keep-a-changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.4.0] — 2026-05-28
+
+### Added
+- **Theme domain (Online Store 2.0):** `shopify/scripts/theme/{list,get_asset,update_asset}.py` — list themes by role, read theme file content (text body), write file with diff preview gated behind `--dry-run` + `--yes`. Skill: `shopify-theme`.
+- **Hydrogen domain:** `shopify/scripts/hydrogen/{build_variant_url,validate_url}.py` — pure-Python URL composition + HEAD-check validation. No Shopify Admin API required. Skill: `shopify-hydrogen`.
+- **`shopify/utils/diff.py`** — unified diff helper using stdlib difflib. Used by `theme/update_asset.py` and available to future scripts.
+- **`core.http.HttpClient.head()`** — wraps the existing `.request()` retry path with the HEAD method, used by `hydrogen/validate_url.py`.
+
+### Boundaries
+- `theme/*` scripts are Online Store 2.0 only. Hydrogen storefront edits live in your separate Hydrogen repo and are NOT in scope for the toolkit.
+- `hydrogen/*` helpers are URL-builders/validators only. They do not edit Hydrogen source code.
+
 ## [0.3.2] — 2026-05-28
 
 ### Added
