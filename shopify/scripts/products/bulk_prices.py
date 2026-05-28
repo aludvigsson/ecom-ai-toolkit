@@ -22,13 +22,9 @@ from typing import Any
 from core.config import load_config
 from core.state import save_state
 from shopify.utils.cli import add_common_flags
-from shopify.utils.client import ShopifyClient
+from shopify.utils.client import ShopifyClient, check_user_errors
 from shopify.utils.csv_io import read_csv_dicts
 from shopify.utils.search import escape_search_value
-
-# Pull the static method out so tests that patch `ShopifyClient` in this
-# module's namespace don't replace the userErrors check.
-_check_user_errors = ShopifyClient.check_user_errors
 
 _CHUNK_SIZE = 250
 
@@ -223,7 +219,7 @@ def main(argv: list[str] | None = None) -> int:
         for pid, variants in by_product.items():
             for chunk in _chunk(variants, _CHUNK_SIZE):
                 data = client.graphql(_BULK_MUTATION, {"productId": pid, "variants": chunk})
-                _check_user_errors(data, mutation="productVariantsBulkUpdate")
+                check_user_errors(data, mutation="productVariantsBulkUpdate")
                 state["completed_variant_ids"].extend(v["id"] for v in chunk)
                 _persist_state(state_path, state)
 

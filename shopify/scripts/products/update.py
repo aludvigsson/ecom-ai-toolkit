@@ -12,11 +12,7 @@ import sys
 
 from core.config import load_config
 from shopify.utils.cli import add_common_flags, format_output
-from shopify.utils.client import ShopifyClient
-
-# Pull the real static method out as a top-level reference. Tests that patch
-# `ShopifyClient` in this module's namespace will not replace this alias.
-_check_user_errors = ShopifyClient.check_user_errors
+from shopify.utils.client import ShopifyClient, check_user_errors
 
 _MUTATION = """
 mutation ProductUpdate($input: ProductInput!) {
@@ -67,7 +63,7 @@ def main(argv: list[str] | None = None) -> int:
     with ShopifyClient(config=cfg) as client:
         data = client.graphql(_MUTATION, {"input": product_input})
 
-    _check_user_errors(data, mutation="productUpdate")
+    check_user_errors(data, mutation="productUpdate")
     print(format_output(data["productUpdate"]["product"], args.output))
     return 0
 

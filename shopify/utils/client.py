@@ -53,6 +53,20 @@ class ShopifyUserError(RuntimeError):
         super().__init__(f"{mutation} userErrors: {summary}")
 
 
+def check_user_errors(data: dict, *, mutation: str) -> None:
+    """Raise ShopifyUserError if `data[mutation].userErrors` is non-empty.
+
+    Free function for direct import — preferred for new code:
+        from shopify.utils.client import check_user_errors
+    The ShopifyClient.check_user_errors staticmethod calls this internally
+    and remains as a back-compat shim.
+    """
+    node = data.get(mutation) or {}
+    errs = node.get("userErrors") or []
+    if errs:
+        raise ShopifyUserError(mutation, errs)
+
+
 class ShopifyClient:
     """Admin GraphQL client.
 
@@ -91,15 +105,8 @@ class ShopifyClient:
 
     @staticmethod
     def check_user_errors(data: dict, *, mutation: str) -> None:
-        """Raise ShopifyUserError if `data[mutation].userErrors` is non-empty.
-
-        Standard shape across most Shopify mutations:
-            data.{mutation}.userErrors: [{field: [str], message: str, ...}]
-        """
-        node = data.get(mutation) or {}
-        errs = node.get("userErrors") or []
-        if errs:
-            raise ShopifyUserError(mutation, errs)
+        """Back-compat shim; delegates to the module-level check_user_errors."""
+        check_user_errors(data, mutation=mutation)
 
     def __enter__(self) -> ShopifyClient:
         return self
