@@ -23,7 +23,12 @@ from typing import Any
 from core.config import load_config
 from core.state import save_state
 from shopify.utils.cli import add_common_flags
-from shopify.utils.client import ShopifyClient, check_user_errors
+from shopify.utils.client import (
+    AmbiguousSkuError,
+    ShopifyClient,
+    SkuNotFoundError,
+    check_user_errors,
+)
 from shopify.utils.csv_io import read_csv_dicts
 from shopify.utils.search import escape_search_value
 
@@ -37,26 +42,6 @@ query VariantLookup($q: String!) {
   }
 }
 """
-
-
-class AmbiguousSkuError(RuntimeError):
-    """Raised when a SKU lookup returns more than one variant."""
-
-    def __init__(self, sku: str, variant_ids: list[str]) -> None:
-        self.sku = sku
-        self.variant_ids = variant_ids
-        super().__init__(
-            f"SKU {sku!r} matched {len(variant_ids)} variants: {', '.join(variant_ids)}. "
-            f"Refusing to guess — use --csv with explicit variant_id column instead."
-        )
-
-
-class SkuNotFoundError(RuntimeError):
-    """Raised when a SKU lookup returns zero variants."""
-
-    def __init__(self, sku: str) -> None:
-        self.sku = sku
-        super().__init__(f"SKU {sku!r} not found")
 
 
 _BULK_MUTATION = """

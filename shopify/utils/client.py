@@ -53,6 +53,34 @@ class ShopifyUserError(RuntimeError):
         super().__init__(f"{mutation} userErrors: {summary}")
 
 
+class AmbiguousSkuError(RuntimeError):
+    """Raised when a SKU lookup returns more than one variant.
+
+    Promoted from products/bulk_prices.py in Plan 3 Batch 1 so other
+    scripts (e.g. inventory operations) can reuse the same exception
+    type for SKU-resolution failure.
+    """
+
+    def __init__(self, sku: str, variant_ids: list[str]) -> None:
+        self.sku = sku
+        self.variant_ids = variant_ids
+        super().__init__(
+            f"SKU {sku!r} matched {len(variant_ids)} variants: {', '.join(variant_ids)}. "
+            f"Refusing to guess — pass an explicit variant_id instead."
+        )
+
+
+class SkuNotFoundError(LookupError):
+    """Raised when a SKU lookup returns zero variants.
+
+    Subclasses LookupError per stdlib convention for 'not found' errors.
+    """
+
+    def __init__(self, sku: str) -> None:
+        self.sku = sku
+        super().__init__(f"SKU {sku!r} not found")
+
+
 def check_user_errors(data: dict, *, mutation: str) -> None:
     """Raise ShopifyUserError if `data[mutation].userErrors` is non-empty.
 

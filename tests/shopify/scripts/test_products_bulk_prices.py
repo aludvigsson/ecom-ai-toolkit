@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from shopify.scripts.products import bulk_prices as bp
+from shopify.utils.client import AmbiguousSkuError, SkuNotFoundError
 
 
 def _setup_mocks(stack):
@@ -326,7 +327,7 @@ def test_bulk_prices_raises_on_ambiguous_sku(monkeypatch, tmp_path):
         ]
         with (
             patch.object(sys, "argv", ["bulk_prices.py", "--from-csv", str(csv_path)]),
-            pytest.raises(bp.AmbiguousSkuError) as exc_info,
+            pytest.raises(AmbiguousSkuError) as exc_info,
         ):
             bp.main()
         assert exc_info.value.sku == "DUP"
@@ -346,7 +347,7 @@ def test_bulk_prices_raises_on_missing_sku(monkeypatch, tmp_path):
         ]
         with (
             patch.object(sys, "argv", ["bulk_prices.py", "--from-csv", str(csv_path)]),
-            pytest.raises(bp.SkuNotFoundError) as exc_info,
+            pytest.raises(SkuNotFoundError) as exc_info,
         ):
             bp.main()
         assert exc_info.value.sku == "MISSING"
