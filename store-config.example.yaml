@@ -1,0 +1,25 @@
+# Per-store configuration. Copy to store-config.yaml and fill in.
+# store-config.yaml is gitignored; this example is committed.
+
+store:
+  name: "Example Store"
+  primary_domain: example.com
+  shopify_domain: example-store.myshopify.com
+  storefront_type: online_store_2        # "hydrogen" | "online_store_2"
+  default_locale: en-US
+
+markets:
+  - code: us
+    name: United States
+    locale: en-US
+    currency: USD
+    url_prefix: ""
+
+domains:
+  shopify:        { enabled: true,  api_version: "2025-10" }
+  klaviyo:        { enabled: false }
+  meta_ads:       { enabled: false }
+  google_ads:     { enabled: false }
+  microsoft_ads:  { enabled: false }
+  merchant_center: { enabled: false }
+  gtm:            { enabled: false }
