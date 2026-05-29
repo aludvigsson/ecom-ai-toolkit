@@ -23,7 +23,7 @@ markets:
 domains:
   shopify:        { enabled: true,  api_version: "2025-10" }
   klaviyo:        { enabled: false, api_version: "2024-10-15" }
-  meta_ads:       { enabled: false }
+  meta_ads:       { enabled: false, api_version: "v21.0" }
   google_ads:     { enabled: false }
   microsoft_ads:  { enabled: false }
   merchant_center: { enabled: false }

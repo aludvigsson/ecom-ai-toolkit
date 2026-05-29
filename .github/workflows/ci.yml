@@ -17,7 +17,7 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
       - name: Sync deps
-        run: uv sync --extra dev --extra shopify --extra webhooks --extra klaviyo
+        run: uv sync --extra dev --extra shopify --extra webhooks --extra klaviyo --extra meta-ads
       - name: Ruff check
         run: uv run ruff check .
       - name: Ruff format check

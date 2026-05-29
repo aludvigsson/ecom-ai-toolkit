@@ -105,6 +105,11 @@ klaviyo = [
     { name = "pydantic" },
     { name = "pyyaml" },
 ]
+meta-ads = [
+    { name = "httpx" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
+]
 shopify = [
     { name = "httpx" },
     { name = "pydantic" },
@@ -121,15 +126,18 @@ requires-dist = [
     { name = "fastapi", marker = "extra == 'webhooks'", specifier = ">=0.115" },
     { name = "httpx", marker = "extra == 'all'", specifier = ">=0.27" },
     { name = "httpx", marker = "extra == 'klaviyo'", specifier = ">=0.27" },
+    { name = "httpx", marker = "extra == 'meta-ads'", specifier = ">=0.27" },
     { name = "httpx", marker = "extra == 'shopify'", specifier = ">=0.27" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3" },
     { name = "pydantic", marker = "extra == 'all'", specifier = ">=2.7" },
     { name = "pydantic", marker = "extra == 'klaviyo'", specifier = ">=2.7" },
+    { name = "pydantic", marker = "extra == 'meta-ads'", specifier = ">=2.7" },
     { name = "pydantic", marker = "extra == 'shopify'", specifier = ">=2.7" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
     { name = "pytest-httpx", marker = "extra == 'dev'", specifier = ">=0.32" },
     { name = "pyyaml", marker = "extra == 'all'", specifier = ">=6" },
     { name = "pyyaml", marker = "extra == 'klaviyo'", specifier = ">=6" },
+    { name = "pyyaml", marker = "extra == 'meta-ads'", specifier = ">=6" },
     { name = "pyyaml", marker = "extra == 'shopify'", specifier = ">=6" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6" },
     { name = "uvicorn", extras = ["standard"], marker = "extra == 'all'", specifier = ">=0.30" },
