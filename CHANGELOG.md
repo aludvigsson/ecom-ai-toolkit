@@ -2,6 +2,18 @@
 
 All notable changes documented here. Format follows [keep-a-changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.8.0] — 2026-05-29
+
+### Added
+- **Klaviyo reporting cluster (Plan-K3):** `klaviyo/scripts/flows/{list,get,update_status}`, `klaviyo/scripts/metrics/{list,get,aggregate}`, `klaviyo/scripts/events/{list,create}`, and `klaviyo/scripts/reports/{campaign,flow}`. `flows/update_status` flips a flow's status (e.g. `draft`/`manual`/`live`) and is `--yes`-gated. `metrics/aggregate` is a `metric-aggregate` POST query (measurements, interval, datetime filter). `reports/{campaign,flow}` are `*-values-report` POST queries (statistics, timeframe, `conversion_metric_id`, plus a flow `interval`). `events/create` records a single event (`--metric-name`, profile identifier, optional `--properties` JSON) and is not `--yes`-gated.
+- Skills: `klaviyo-flows` and `klaviyo-metrics` covering their clusters, including each script's `--dry-run`/`--yes` posture and deferring flow authoring to direct API use.
+
+### Conventions
+- Every mutation supports `--dry-run` (prints the JSON:API body / intent and skips the call). `--yes` gates `flows/update_status` (errors via `parser.error` before any network call when missing in live mode); the report and aggregate POSTs and `events/create` honor `--dry-run` without `--yes`.
+
+### Milestone
+- The Klaviyo domain is now complete across audience (K1), sending (K2), and reporting (K3).
+
 ## [0.7.0] — 2026-05-29
 
 ### Added
