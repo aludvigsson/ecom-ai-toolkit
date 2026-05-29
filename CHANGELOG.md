@@ -2,6 +2,16 @@
 
 All notable changes documented here. Format follows [keep-a-changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.7.0] — 2026-05-29
+
+### Added
+- **Klaviyo sending cluster (Plan-K2):** `klaviyo/scripts/campaigns/{list,get,create,schedule,cancel,delete}` and `klaviyo/scripts/templates/{list,get,create,update,delete,render,clone,assign}`. `campaigns/list.py` always sends the mandatory `messages.channel` filter (default `email`, `--channel` override). `templates/{create,update}` accept HTML via `--html` or `--html-file`; `templates/render` accepts context via `--context`/`--context-file`.
+- Skills: `klaviyo-campaigns` and `klaviyo-templates` covering their clusters, including the deferred multi-message-campaign note and the send-endpoint caveat.
+
+### Conventions
+- Every mutation supports `--dry-run` (prints the JSON:API body / intent and skips the call). `--yes` gates `campaigns/schedule`, `campaigns/cancel`, `campaigns/delete`, and `templates/delete` (errors via `parser.error` before any network call when missing in live mode).
+- The campaign send/cancel endpoint was verified against the configured Klaviyo revision before building; the finding is recorded in `docs/superpowers/notes/klaviyo-send-endpoint.md` and `schedule.py`/`cancel.py` match that note rather than a hard-coded guess.
+
 ## [0.6.0] — 2026-05-29
 
 ### Added
