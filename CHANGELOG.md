@@ -2,6 +2,23 @@
 
 All notable changes documented here. Format follows [keep-a-changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.11.0] — 2026-05-29
+
+### Added
+- **Meta Ads audiences cluster (Plan-M3):** `meta_ads/scripts/audiences/{list,get,create,create_lookalike,add_users,remove_users,delete}`, plus the shared `meta_ads/scripts/audiences/_users.py` SHA-256 identifier-hashing helper.
+- `create` builds a CUSTOM custom-audience container (`--name`, `--subtype`, `--description`, `--retention-days`, `--customer-file-source`); `create_lookalike` POSTs `subtype=LOOKALIKE` with a `lookalike_spec` derived from `--source-audience-id`/`--country`/`--ratio` (ratio validated to the `(0, 0.2]` range).
+- `add_users`/`remove_users` normalize (trim + lowercase) and **SHA-256-hash** identifiers from `--value`/`--value-file`, select the `EMAIL_SHA256`/`PHONE_SHA256` schema via `--kind`, and build the `payload` `{schema, data}` object — raw identifiers never leave the process in cleartext.
+- New `meta-ads-audiences` skill covering the cluster, the SHA-256 hashing/privacy note, the `add_users` vs `remove_users` transport difference, and the `--dry-run`/`--yes` posture.
+
+### Conventions
+- Every mutation supports `--dry-run`, which prints the Graph request (hashed `payload` for the user ops) and returns 0 without calling the API.
+- `add_users`, `remove_users`, and `delete` are `--yes`-gated: live execution aborts via `parser.error` before any network/config-load call when `--yes` is missing; `--dry-run` works without `--yes`.
+- **`add_users` POSTs the `payload` form param; `remove_users` issues a `DELETE /<id>/users` carrying `payload` as a query/form param (not a JSON body).**
+- `create`/`create_lookalike` are not `--yes`-gated. No `core/`/`MetaClient` changes — M3 reuses M1's `post`/`delete`.
+
+### Milestone
+- The Meta Ads domain is now complete across reads + insights (M1), structure CRUD (M2), and audiences (M3). The domain git tag is created by the controller after this plan lands — it is not created in these steps.
+
 ## [0.10.0] — 2026-05-29
 
 ### Added
