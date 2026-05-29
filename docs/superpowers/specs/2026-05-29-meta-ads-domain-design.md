@@ -100,8 +100,8 @@ Near-copy of `shopify/utils/cli.py`: `add_common_flags` (`--dry-run`, `--output 
 | `audiences/get.py` | `GET /<audience_id>` | |
 | `audiences/create.py` | `POST /act_<id>/customaudiences` | custom audience (rule/website/customer-file subtype metadata); `--dry-run` |
 | `audiences/create_lookalike.py` | `POST /act_<id>/customaudiences` (`subtype=LOOKALIKE`) | `--source-audience-id`, `--country`, `--ratio`; `--dry-run` |
-| `audiences/add_users.py` | `POST /<audience_id>/users` | hashed identifiers; `--dry-run`, `--yes` |
-| `audiences/remove_users.py` | `DELETE /<audience_id>/users` | `--dry-run`, `--yes` |
+| `audiences/add_users.py` | `POST /<audience_id>/users` | SHA-256-hashed identifiers in the `payload` form param (schema + data); `--dry-run`, `--yes` |
+| `audiences/remove_users.py` | `DELETE /<audience_id>/users` | same `payload` form param (not a JSON body); pass via `params`/form on the DELETE; `--dry-run`, `--yes` |
 | `audiences/delete.py` | `DELETE /<audience_id>` | `--dry-run`, `--yes` |
 
 ## 6. Data flow
