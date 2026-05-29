@@ -56,7 +56,7 @@ def main(argv: list[str] | None = None) -> int:
         help="Campaign objective (e.g. OUTCOME_SALES, OUTCOME_TRAFFIC)",
     )
     parser.add_argument(
-        "--buying_type",
+        "--buying-type",
         dest="buying_type",
         help="Buying type (e.g. AUCTION)",
     )
