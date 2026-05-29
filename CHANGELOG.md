@@ -2,6 +2,19 @@
 
 All notable changes documented here. Format follows [keep-a-changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.9.0] — 2026-05-29
+
+### Added
+- **Meta Ads domain foundation (Plan-M1):** `meta_ads/utils/client.py` (`MetaClient`) — `Authorization: Bearer <token>` auth, versioned Graph base URL (`https://graph.facebook.com/<version>/`) from config `domains.meta_ads.api_version` with `--api-version` override and `_DEFAULT_VERSION` fallback, `account_path` normalizing ids with/without the `act_` prefix, `paginate` following `paging.next` and respecting `--limit`, `check_error` raising `MetaAPIError` carrying `code`/`subcode`/`fbtrace_id` (and naming `META_ACCESS_TOKEN` on code 102/190), and `delete`/empty body returning `{}`. Shared CLI helpers mirror the Shopify/Klaviyo conventions.
+- **Structure-read + insights scripts:** `meta_ads/scripts/accounts/{list,get}`, `meta_ads/scripts/campaigns/{list,get}`, `meta_ads/scripts/adsets/{list,get}`, `meta_ads/scripts/ads/{list,get}`, `meta_ads/scripts/creatives/{list,get}`, and `meta_ads/scripts/insights/query`. Reads support field selection via `--fields`, `--api-version` override, and `--limit`/pagination, with mutually-exclusive parents where applicable (`--account-id|--campaign-id`, `--account-id|--adset-id`, `--account-id|--object-id`). `insights/query` supports `--level {account,campaign,adset,ad}`, `--date-preset` OR paired `--since`/`--until` (mutually exclusive), `--breakdowns`, and `--fields`.
+- Skills: `meta-ads-structure` (read sections) and `meta-ads-insights` covering their clusters.
+
+### Changed
+- `meta-ads` extra populated in `pyproject.toml`; `domains.meta_ads` wired as `{enabled, api_version}` in `store-config.example.yaml`; CI now installs `--extra meta-ads`.
+
+### Boundaries
+- Writes (safe-default `PAUSED`) and audiences are deferred to Plans M2/M3.
+
 ## [0.8.0] — 2026-05-29
 
 ### Added
