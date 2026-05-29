@@ -2,6 +2,22 @@
 
 All notable changes documented here. Format follows [keep-a-changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.10.0] — 2026-05-29
+
+### Added
+- **Meta Ads structure CRUD (Plan-M2):** `meta_ads/scripts/campaigns/{create,update,pause,activate,delete}`, `meta_ads/scripts/adsets/{create,update,pause,activate,delete}`, `meta_ads/scripts/ads/{create,update,pause,activate,delete}`, and `meta_ads/scripts/creatives/create`.
+- `adsets/create.py` validates `--targeting` as JSON and forwards it unchanged; `creatives/create.py` validates `--object-story-spec` as JSON; `ads/create.py`/`ads/update.py` serialize the creative reference to `{"creative_id": ...}`.
+
+### Safety
+- **Safe-default create:** every `create` script forces `status=PAUSED` — there is no flag or path that yields `ACTIVE` on create (asserted by tests for campaigns, adsets, and ads).
+- **`activate.py` is the only script sending `status=ACTIVE`** and is separate per object type and `--yes`-gated; without `--yes` (and not `--dry-run`) it calls `parser.error(...)` before any network/config-load call.
+- **`delete.py` (DELETE) is `--yes`-gated**, and a **budget change** on `campaigns/update.py` / `adsets/update.py` (`--daily-budget`/`--lifetime-budget`) is `--yes`-gated; name-only updates and `pause.py` are not gated.
+- **`--dry-run` on every write** prints the Graph node/edge + form params (or `method=DELETE`) and returns 0 without calling the API.
+- Writes go through the existing `MetaClient.post`/`MetaClient.delete`; `check_error` surfaces Graph errors (`MetaAPIError` with `fbtrace_id`) after every live call. No `core/` or `MetaClient` changes.
+
+### Changed
+- `meta-ads-structure` skill extended to cover the full read+write cluster, with the safe-default-`PAUSED` and `--yes`/`--dry-run` posture stated prominently.
+
 ## [0.9.0] — 2026-05-29
 
 ### Added
