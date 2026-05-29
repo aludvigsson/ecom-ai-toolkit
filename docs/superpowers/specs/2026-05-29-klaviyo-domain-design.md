@@ -8,7 +8,7 @@
 
 ## 1. Goal
 
-Ship full-CRUD command-line management of a Klaviyo account across four capability clusters — audience (profiles/lists/segments), sending (campaigns/templates), and reporting (flows/metrics) — with the same UX, safety, and testing conventions as the Shopify domain. Every script is `uv run klaviyo/scripts/<cluster>/<op>.py` with `argparse` flags; no MCP calls; built on `core.http.HttpClient`.
+Ship full-CRUD command-line management of a Klaviyo account across the chosen capability clusters — audience (profiles/lists/segments), sending (campaigns/templates), and reporting (flows/metrics) — with the same UX, safety, and testing conventions as the Shopify domain. Every script is `uv run klaviyo/scripts/<cluster>/<op>.py` with `argparse` flags; no MCP calls; built on `core.http.HttpClient`.
 
 ## 2. Non-goals / boundaries
 
@@ -41,7 +41,7 @@ klaviyo/
 - Base URL `https://a.klaviyo.com/api/`.
 - Default headers:
   - `Authorization: Klaviyo-API-Key <key>`
-  - `revision: <revision>` — required dated revision. Default from `config.domains["klaviyo"].revision`, falling back to a module constant `_DEFAULT_REVISION` (a known-good dated revision); overridable per-invocation via a `--revision` flag plumbed into the client.
+  - `revision: <revision>` — required dated revision. Klaviyo's revision *is* its dated API version, so it is stored in the existing `DomainConfig.api_version` field (no `core/` change): default from `config.domains["klaviyo"].api_version`, falling back to a module constant `_DEFAULT_REVISION` (a known-good dated revision) when unset; overridable per-invocation via a `--revision` flag plumbed into the client. This mirrors the Shopify domain, which reads `config.domains["shopify"].api_version`.
   - `accept: application/vnd.api+json`, `content-type: application/vnd.api+json`
 - Methods:
   - `get(path, params=None)`, `post(path, json=None)`, `patch(path, json=None)`, `delete(path)` — thin wrappers over `core.http.HttpClient` (which already exposes `.get/.post/.patch/.delete` and retries on 429/5xx with backoff). Each returns the parsed JSON body (or `None`/`{}` for `204` deletes).
@@ -92,8 +92,8 @@ The `klaviyo` scripts additionally register `--revision` (client revision overri
 | `campaigns/list.py` | `GET /campaigns` | requires the `messages.channel` filter Klaviyo mandates; default `email` |
 | `campaigns/get.py` | `GET /campaigns/{id}` | |
 | `campaigns/create.py` | `POST /campaigns` | `--dry-run` |
-| `campaigns/schedule.py` | `POST /campaign-send-jobs` (or schedule attr) | `--dry-run`, `--yes` (highest stakes) |
-| `campaigns/cancel.py` | `PATCH`/cancel job | `--dry-run`, `--yes` |
+| `campaigns/schedule.py` | `POST /campaign-send-jobs` (or campaign `send_strategy`/`scheduled_at` attr) | `--dry-run`, `--yes` (highest stakes). **Plan K2 must confirm the exact current endpoint against Klaviyo's API revision before building.** |
+| `campaigns/cancel.py` | cancel/revert the send job (`PATCH /campaign-send-jobs/{id}`) | `--dry-run`, `--yes`. Confirm endpoint with K2. |
 | `campaigns/delete.py` | `DELETE /campaigns/{id}` | `--dry-run`, `--yes` |
 | `templates/list.py` | `GET /templates` | |
 | `templates/get.py` | `GET /templates/{id}` | |
@@ -139,7 +139,8 @@ The `klaviyo` scripts additionally register `--revision` (client revision overri
 ## 9. Config & secrets
 
 - `.env.example` already reserves `KLAVIYO_PRIVATE_API_KEY` (no change needed beyond documenting it's now active).
-- `store-config.example.yaml`: extend `domains.klaviyo` to `{ enabled: false, revision: "<dated>" }`.
+- `store-config.example.yaml`: set `domains.klaviyo` to `{ enabled: false, api_version: "<dated revision>" }` — `api_version` holds the Klaviyo dated revision (see §3.1). **No `core/config.py` change**: this reuses the existing `DomainConfig.api_version` field.
+- `pyproject.toml`: populate the currently-empty `klaviyo` extra with the same base deps as `shopify` (`httpx>=0.27`, `pyyaml>=6`, `pydantic>=2`) so `uv sync --extra klaviyo` actually installs (Plan K1).
 - Per-market: `klaviyo_list_id` (and similar) added to `markets[]` entries as scripts need them.
 
 ## 10. Skills (§7 step 6)
