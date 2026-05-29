@@ -36,6 +36,7 @@ def _flatten(node: dict) -> dict:
         "timezone_name": node.get("timezone_name"),
         "amount_spent": node.get("amount_spent"),
         "balance": node.get("balance"),
+        "business_name": node.get("business_name"),
         "spend_cap": node.get("spend_cap"),
     }
 
