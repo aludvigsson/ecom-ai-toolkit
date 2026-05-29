@@ -2,6 +2,16 @@
 
 All notable changes documented here. Format follows [keep-a-changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.6.0] — 2026-05-29
+
+### Added
+- **Klaviyo domain foundation (Plan-K1):** `klaviyo/utils/client.py` (`KlaviyoClient`) — `Klaviyo-API-Key` auth, dated `revision` header (config value, `--revision` override, `_DEFAULT_REVISION` fallback), `paginate` following JSON:API `links.next` with `--limit` cap, `check_errors` raising `KlaviyoAPIError` on JSON:API `errors[]`, and `204` deletes returning `{}`. Shared CLI helpers mirror the Shopify conventions.
+- **Audience cluster scripts:** `klaviyo/scripts/profiles/{list,get,create,update,subscribe,unsubscribe}`, `klaviyo/scripts/lists/{list,get,create,update,delete,add_profiles,remove_profiles}`, and `klaviyo/scripts/segments/{list,get}`. Every mutation supports `--dry-run` (prints the JSON:API body and skips the call); destructive ops (`profiles/unsubscribe`, `lists/delete`, `lists/remove_profiles`) are gated behind `--yes`.
+- Skills: `klaviyo-profiles` and `klaviyo-lists` covering their clusters.
+
+### Changed
+- `klaviyo` extra populated in `pyproject.toml`; `domains.klaviyo` wired as `{enabled, api_version}` in `store-config.example.yaml`; CI now installs `--extra klaviyo`.
+
 ## [0.5.1] — 2026-05-28
 
 ### Fixed
